@@ -251,6 +251,18 @@ test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
 
 
 
+# Make a FASTA of all NGG and NAG sites, indicating how often each shows up as
+# a CRISPR target. This file will be used to make the bowtie index.
+
+../sh/make_12mer_index_fasta.sh \
+	${BASE}_pamlist_12mers_noneg.tabseq.gz \
+	${BASE}_naglist_12mers_noneg.tabseq.gz \
+	${BASE}_pam_nag_12mercounts_allsites.fa
+
+test_file ${BASE}_pam_nag_12mercounts_allsites.fa.gz
+
+
+
 
 
 echo "Finished."
