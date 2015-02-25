@@ -18,8 +18,7 @@ cat ${PAMTAGSEQ} ${NAGTAGSEQ} \
 	| sort \
 	| uniq -c \
 	| awk '{ s++; print ">site"s"_"$1"\n"$2}' \
-	| gzip -c \
-	> ${OUTPUT}.gz
+	> ${OUTPUT}
 
 
 exit 0

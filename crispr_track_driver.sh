@@ -181,7 +181,7 @@ if [ -d $WORKDIR ] ; then throw_error "$WORKDIR already exists!"; fi
 mkdir $WORKDIR
 cd $WORKDIR
 
-
+mkdir indexes
 
 
 # If there's already an index provided, just use that. If there isn't, make one
@@ -192,10 +192,9 @@ if [[ ! $FULL_INDEX ]]
 then
 	
 	echo "Creating an index of the whole FASTA input..."
-	mkdir indexes
 	cd indexes
 	
-	../../sh/build_genome_index.sh $GENOME ${BASE}_genomeIndex
+	../../sh/build_index.sh $GENOME ${BASE}_genomeIndex
 		
 	FULL_INDEX=${PWD}/${BASE}_genomeIndex
 	
@@ -243,6 +242,9 @@ test_file ${BASE}_naglist_12mers_noneg.tabseq.gz
 # alignment query; as such, this does not need to be repeated for the NAG
 # entires.
 
+echo ""
+echo "Making a FASTA file of all NGG-associated 12mers..."
+
 ../sh/make_12mer_query_fasta.sh \
 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
 	${BASE}_pamlist_12mers_noneg_1each_noN.fa
@@ -254,12 +256,39 @@ test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
 # Make a FASTA of all NGG and NAG sites, indicating how often each shows up as
 # a CRISPR target. This file will be used to make the bowtie index.
 
+echo ""
+echo "Making a FASTA file of all NGG- and NAG-associated 12mers..."
+
 ../sh/make_12mer_index_fasta.sh \
 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
 	${BASE}_naglist_12mers_noneg.tabseq.gz \
 	${BASE}_pam_nag_12mercounts_allsites.fa
 
-test_file ${BASE}_pam_nag_12mercounts_allsites.fa.gz
+test_file ${BASE}_pam_nag_12mercounts_allsites.fa
+
+
+
+# Build the NGG/NAG index in the indexes subdirectory.
+
+cd indexes
+
+../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_counts_allsites
+
+FULL_12MER_INDEX=${PWD}/${BASE}_pam_nag_counts_allsites
+
+verify_index ${FULL_12MER_INDEX}.1.ebwt
+verify_index ${FULL_12MER_INDEX}.2.ebwt
+verify_index ${FULL_12MER_INDEX}.3.ebwt
+verify_index ${FULL_12MER_INDEX}.4.ebwt
+verify_index ${FULL_12MER_INDEX}.rev.1.ebwt
+verify_index ${FULL_12MER_INDEX}.rev.2.ebwt
+
+cd ..
+
+echo "Deleting the NGG/NAG FASTA..."
+rm ${BASE}_pam_nag_12mercounts_allsites.fa
+
+
 
 
 
