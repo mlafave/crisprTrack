@@ -238,6 +238,17 @@ echo "Identifying all NAG sites & fetching 12mer sequence..."
 test_file ${BASE}_naglist_12mers_noneg.tabseq.gz
 
 
+# Make an NGG FASTA file that represents each sequence only once, and that does
+# not contain any sequences with ambiguous bases. This file will be used as the
+# alignment query; as such, this does not need to be repeated for the NAG
+# entires.
+
+../sh/make_12mer_query_fasta.sh \
+	${BASE}_pamlist_12mers_noneg.tabseq.gz \
+	${BASE}_pamlist_12mers_noneg_1each_noN.fa
+
+test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
+
 
 
 
