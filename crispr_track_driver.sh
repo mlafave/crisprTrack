@@ -306,6 +306,35 @@ test_file ${BASE}_pamlist_12mers_offtargets.gz
 
 
 
+echo "Deleting the FASTA file of all NGG-associated 12mers..."
+rm ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
+
+
+
+echo ""
+echo "Fetching the sequence of all NGG-associated 20mers..."
+
+cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
+	| ../sh/make_20mer_seq.sh \
+	${GENOME} \
+	${BASE}_pamlist_20mers_noneg.tabseq
+
+test_file ${BASE}_pamlist_20mers_noneg.tabseq.gz
+
+
+
+echo ""
+echo "Fetching the sequence of all NGG and NAG-associated 20mers..."
+
+cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
+	${BASE}_naglist_12mers_noneg.tabseq.gz \
+	| ../sh/make_20mer_seq.sh \
+	${GENOME} \
+	${BASE}_pam_nag_all20mers.tabseq
+
+test_file ${BASE}_pam_nag_all20mers.tabseq.gz
+
+
 
 echo "Finished."
 
