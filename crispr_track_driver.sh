@@ -272,9 +272,9 @@ test_file ${BASE}_pam_nag_12mercounts_allsites.fa
 
 cd indexes
 
-../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_counts_allsites
+../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_12mercounts_allsites
 
-FULL_12MER_INDEX=${PWD}/${BASE}_pam_nag_counts_allsites
+FULL_12MER_INDEX=${PWD}/${BASE}_pam_nag_12mercounts_allsites
 
 verify_index ${FULL_12MER_INDEX}.1.ebwt
 verify_index ${FULL_12MER_INDEX}.2.ebwt
@@ -290,6 +290,19 @@ rm ${BASE}_pam_nag_12mercounts_allsites.fa
 
 
 
+# Map 12mers with bowtie, using -v 1. This detects the number of
+# potentially-cutting CRISPRs for which the seed region is fewer than 2
+# mismatches different.
+
+echo ""
+echo "Counting NGG 12mer offtargets..."
+
+../sh/find_12mer_offtargets.sh \
+	${FULL_12MER_INDEX} \
+	${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz \
+	${BASE}_pamlist_12mers_offtargets
+
+test_file ${BASE}_pamlist_12mers_offtargets.gz
 
 
 
