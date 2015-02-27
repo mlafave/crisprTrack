@@ -384,6 +384,15 @@ test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
 
 
 
+echo ""
+echo "Making a FASTA file of all NGG-associated 20mers..."
+
+../sh/make_20mer_query_fasta.sh \
+	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz \
+	${BASE}_pamlist_20mers_noneg_1each_noN.fa
+
+
+test_file ${BASE}_pamlist_20mers_noneg_1each_noN.fa
 
 
 
