@@ -324,15 +324,14 @@ test_file ${BASE}_pamlist_20mers_noneg.tabseq.gz
 
 
 echo ""
-echo "Fetching the sequence of all NGG and NAG-associated 20mers..."
+echo "Fetching the sequence of all NAG-associated 20mers..."
 
-cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
-	${BASE}_naglist_12mers_noneg.tabseq.gz \
+cat ${BASE}_naglist_12mers_noneg.tabseq.gz \
 	| ../sh/make_20mer_seq.sh \
 	${GENOME} \
-	${BASE}_pam_nag_all20mers.tabseq
+	${BASE}_naglist_20mers_noneg.tabseq
 
-test_file ${BASE}_pam_nag_all20mers.tabseq.gz
+test_file ${BASE}_naglist_20mers_noneg.tabseq.gz
 
 
 
@@ -344,6 +343,12 @@ echo "Removing N-entries from the 20mer tabseq & capitalizing..."
 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq
 
 test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+
+
+
+echo ""
+echo ""
+
 
 
 
