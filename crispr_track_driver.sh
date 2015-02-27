@@ -270,6 +270,9 @@ test_file ${BASE}_pam_nag_12mercounts_allsites.fa
 
 # Build the NGG/NAG index in the indexes subdirectory.
 
+echo ""
+echo "Making the 12mer index..."
+
 cd indexes
 
 ../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_12mercounts_allsites
@@ -285,7 +288,7 @@ verify_index ${FULL_12MER_INDEX}.rev.2.ebwt
 
 cd ..
 
-echo "Deleting the NGG/NAG FASTA..."
+echo "Deleting the 12mer NGG/NAG FASTA..."
 rm ${BASE}_pam_nag_12mercounts_allsites.fa
 
 
@@ -344,6 +347,29 @@ echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
 	${BASE}_pam_nag_20mercounts_allsites.fa
 
 test_file ${BASE}_pam_nag_20mercounts_allsites.fa
+
+
+
+echo ""
+echo "Making the 20mer index..."
+
+cd indexes/
+
+../../sh/build_index.sh ../${BASE}_pam_nag_20mercounts_allsites.fa ${BASE}_pam_nag_20mercounts_allsites
+
+FULL_20MER_INDEX=${PWD}/${BASE}_pam_nag_20mercounts_allsites
+
+verify_index ${FULL_20MER_INDEX}.1.ebwt
+verify_index ${FULL_20MER_INDEX}.2.ebwt
+verify_index ${FULL_20MER_INDEX}.3.ebwt
+verify_index ${FULL_20MER_INDEX}.4.ebwt
+verify_index ${FULL_20MER_INDEX}.rev.1.ebwt
+verify_index ${FULL_20MER_INDEX}.rev.2.ebwt
+
+cd ..
+
+echo "Deleting the 20mer NGG/NAG FASTA..."
+rm ${BASE}_pam_nag_20mercounts_allsites.fa 
 
 
 
