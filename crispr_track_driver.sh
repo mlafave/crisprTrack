@@ -259,7 +259,7 @@ test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
 echo ""
 echo "Making a FASTA file of all NGG- and NAG-associated 12mers..."
 
-../sh/make_12mer_index_fasta.sh \
+../sh/make_index_fasta.sh \
 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
 	${BASE}_naglist_12mers_noneg.tabseq.gz \
 	${BASE}_pam_nag_12mercounts_allsites.fa
@@ -336,7 +336,19 @@ test_file ${BASE}_naglist_20mers_noneg.tabseq.gz
 
 
 echo ""
-echo "Removing N-entries from the 20mer tabseq & capitalizing..."
+echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
+
+../sh/make_index_fasta.sh \
+	${BASE}_pamlist_20mers_noneg.tabseq.gz \
+	${BASE}_naglist_20mers_noneg.tabseq.gz \
+	${BASE}_pam_nag_20mercounts_allsites.fa
+
+test_file ${BASE}_pam_nag_20mercounts_allsites.fa
+
+
+
+echo ""
+echo "Removing N-entries from the NGG 20mer tabseq & capitalizing..."
 
 ../sh/capitalize_rmN_tabseq.sh \
 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
@@ -346,8 +358,6 @@ test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
 
 
 
-echo ""
-echo ""
 
 
 

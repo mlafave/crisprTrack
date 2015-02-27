@@ -6,6 +6,7 @@ source ~/.bashrc
 # and to indicate how often each 12mer appears as a potential CRISPR target
 # site. This FASTA is later used to make the 12mer bowtie index. Note that the
 # gzipped files do not need to be gunzipped prior to concatenation.
+# This works equally well for making the 20mer index.
 
 PAMTAGSEQ=$1
 NAGTAGSEQ=$2
