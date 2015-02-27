@@ -336,6 +336,19 @@ test_file ${BASE}_pam_nag_all20mers.tabseq.gz
 
 
 
+echo ""
+echo "Removing N-entries from the 20mer tabseq & capitalizing..."
+
+../sh/capitalize_rmN_tabseq.sh \
+	${BASE}_pamlist_20mers_noneg.tabseq.gz \
+	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq
+
+test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+
+
+
+
+
 echo "Finished."
 
 exit 0;
