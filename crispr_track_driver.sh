@@ -76,6 +76,7 @@ Usage: ./crispr_track_driver.sh [options] input_genome.fa
 	Options:
 	-h	print this help message and exit
 	-i	path to the index basename, if available
+	-l	number of 
 	-n	name
 	-v	print version and quit
 EOF
@@ -92,9 +93,9 @@ EOF
 
 
 NAME="crisprTrack"
+LINE_COUNT=5000000
 
-
-while getopts "hi:n:v" OPTION
+while getopts "hi:l:n:v" OPTION
 do
 	case $OPTION in
     	h)
@@ -103,6 +104,9 @@ do
     		;;
     	i)
     		INDEX_INPUT=$OPTARG
+    		;;
+    	l)
+    		LINE_COUNT=$OPTARG
     		;;
     	n)
     		NAME=$OPTARG
@@ -114,6 +118,16 @@ do
     esac
 done
 shift $((OPTIND-1))
+
+
+
+if [ $(( $LINE_COUNT % 2 )) -ne 0 ]
+then 
+	throw_error "-l must be an even integer"
+elif [ $LINE_COUNT -le 0 ]
+then
+	throw_error "-l must be greater than 0"
+fi 
 
 
 
@@ -396,6 +410,16 @@ test_file ${BASE}_pamlist_20mers_noneg_1each_noN.fa
 
 
 
+echo "Splitting the NGG 20mer FASTA into 5 million line files..."
+
+mkdir split_20mer
+cd split_20mer
+
+../../sh/split_20mers.sh ${LINE_COUNT} ../${BASE}_pamlist_20mers_noneg_1each_noN.fa
+
+test_file split_000000000000
+
+cd ..
 
 
 
