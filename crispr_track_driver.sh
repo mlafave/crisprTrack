@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+source ~/.bashrc
+
+
 # Set up functions for file testing & error reporting.
 function throw_error
 {
@@ -61,8 +64,6 @@ function full_path ()
 }
 
 
-source ~/.bashrc
-
 
 # Input:
 # * FASTA of the genome (preferably UCSC, I suppose, if that's where the tracks end up)
@@ -76,7 +77,7 @@ Usage: ./crispr_track_driver.sh [options] input_genome.fa
 	Options:
 	-h	print this help message and exit
 	-i	path to the index basename, if available
-	-l	number of 
+	-l	an even number of lines to use per file when aligning 20mers
 	-n	name
 	-v	print version and quit
 EOF
@@ -410,7 +411,8 @@ test_file ${BASE}_pamlist_20mers_noneg_1each_noN.fa
 
 
 
-echo "Splitting the NGG 20mer FASTA into 5 million line files..."
+echo ""
+echo "Splitting the NGG 20mer FASTA..."
 
 mkdir split_20mer
 cd split_20mer
@@ -423,6 +425,30 @@ cd ..
 
 
 
-echo "Finished."
+echo ""
+echo "Removing the unsplit NGG 20mer FASTA..."
+rm ${BASE}_pamlist_20mers_noneg_1each_noN.fa
+
+
+
+# Make a directory in which to put the output of the 20mer alignment
+mkdir offtarget_20mer_counts
+
+
+
+# Count the number of split files
+SPLIT_FILE_COUNT=`ls split_20mer/ | wc -l`
+
+
+echo ""
+echo "Making the script to find the 20mer offtargets..."
+
+../sh/write_20mer_script.sh ../sh/write_20mer_script.sh ${SPLIT_FILE_COUNT} ${FULL_20MER_INDEX} ${JOB_ID}
+
+test_file run_find_20mer_offtargets.sh
+
+
+echo ""
+echo "Driver 1 Finished."
 
 exit 0;

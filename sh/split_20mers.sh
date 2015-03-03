@@ -2,8 +2,8 @@
 
 source ~/.bashrc
 
-# Intended to 
-# Run from within the split_20mer/ directory in the working directory
+# Intended to divide the 20mer NGG query FASTA into manageable chunks. Run from
+# within the split_20mer/ directory in the working directory.
 
 LINE_COUNT=$1
 PAM_20MER_FASTA=$2
