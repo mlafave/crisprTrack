@@ -20,7 +20,7 @@ gunzip -c ${TARGET_FASTA} \
 	-F "[_\t]" \
 	-v OFS="\t" \
 	' { a[$11] += $4 }END{ for(var in a){print var"\t"a[var]-1}}' \
-	| sort \
+	| sort -k1,1 \
 	| gzip \
 	> ${OUTPUT}.gz
 
