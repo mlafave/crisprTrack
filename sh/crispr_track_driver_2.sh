@@ -58,13 +58,34 @@ echo "Concatenating the offtarget 20mer counts, removing 20mers with any offtarg
 ../sh/merge_12_and_20mers_to_bed.sh \
 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq \
 	${BASE}_pamlist_12mers_offtargets \
-	${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort
+	${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed
 
-test_file ${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.gz
+test_file ${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed.gz
 
 
 
 # rm -r offtarget_20mer_counts/
+
+
+# Count the number of entires in the BED file
+
+echo ""
+echo "Counting BED entries..."
+
+LINECOUNT=`gunzip -c ${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed.gz | wc -l`
+
+echo "There are ${LINECOUNT} entries."
+
+
+
+# Use the number of entries to adjust the score for each line of the BED file
+
+../sh/add_proportional_BED_score.sh \
+	${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed.gz \
+	${LINECOUNT} \
+	${BASE}_pamlist_20mer_no20offtarg_scored.bed
+
+test_file ${BASE}_pamlist_20mer_no20offtarg_scored.bed.gz
 
 
 
