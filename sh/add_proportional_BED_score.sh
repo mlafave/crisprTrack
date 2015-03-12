@@ -9,12 +9,19 @@ source ~/.bashrc
 
 SCORELESS_BED=$1
 LINECOUNT=$2
-OUTPUT=$3
+NAME=$3
+FIRST_ID=$4
+OUTPUT=$5
 
 
 gunzip -c ${SCORELESS_BED} \
-	| awk -v COUNT="${LINECOUNT}" -v OFS="\t" 'BEGIN{s = 1000; old5="X"}{ if( $5 == old5){print $1,$2,$3,$4"_"$5,olds,$7}else{print $1,$2,$3,$4"_"$5,s,$7; olds = s}; old5 = $5; s -= 1000/COUNT }' \
+	| awk -v COUNT="${LINECOUNT}" \
+	-v OFS="\t" \
+	'BEGIN{ s = 1000; old5="X"}{ if( $5 == old5){print $1,$2,$3,$4"_"$5,olds,$7}else{print $1,$2,$3,$4"_"$5,s,$7; olds = s}; old5 = $5; s -= 1000/COUNT }' \
 	| sort -k1,1 -k2,2n \
+	| awk -v NAME="${NAME}" \
+	-v CRISPRJOB="crispr${FIRST_ID}" \
+	'BEGIN{ print "track name="CRISPRJOB" type=bed description=\""NAME"\" useScore=1" }{print}' \
 	| gzip -c \
 	> ${OUTPUT}.gz
 

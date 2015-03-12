@@ -93,7 +93,7 @@ EOF
 }
 
 
-NAME="crisprTrack"
+NAME="crisprs"
 LINE_COUNT=5000000
 
 while getopts "hi:l:n:v" OPTION
@@ -455,9 +455,9 @@ echo "20mer alignment job ID is ${SECOND_ID}."
 echo ""
 echo "Submitting the merge job directly, held until the array job completes..."
 
-THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE}`
+THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE} ${NAME} ${JOB_ID}`
 
-THIRD_ID=`echo $SECOND_QSUB | head -1 | cut -d' ' -f3`
+THIRD_ID=`echo $THIRD_QSUB | head -1 | cut -d' ' -f3`
 
 echo "The second driver job ID is ${THIRD_ID}."
 

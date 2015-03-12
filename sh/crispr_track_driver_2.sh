@@ -29,13 +29,18 @@ function test_file
 
 
 BASE=$1
+NAME=$2
+FIRST_ID=$3
 
+
+echo "This run of driver 2 was spawned by job ID ${FIRST_ID}."
 
 
 # Unzip the list of 12mer and 20mer positions and sequence
 # (${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz), and the count of 12mer
 # offtargets (${BASE}_pamlist_12mers_offtargets.gz)
 
+echo ""
 echo "Unzipping 12mer and 20mer input to make a BED file..."
 
 gunzip ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
@@ -83,6 +88,8 @@ echo "There are ${LINECOUNT} entries."
 ../sh/add_proportional_BED_score.sh \
 	${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed.gz \
 	${LINECOUNT} \
+	${NAME} \
+	${FIRST_ID} \
 	${BASE}_pamlist_20mer_no20offtarg_scored.bed
 
 test_file ${BASE}_pamlist_20mer_no20offtarg_scored.bed.gz
