@@ -440,12 +440,32 @@ mkdir offtarget_20mer_counts
 SPLIT_FILE_COUNT=`ls split_20mer/ | wc -l`
 
 
+
 echo ""
-echo "Making the script to find the 20mer offtargets..."
+echo "Submitting the array job directly..."
 
-../sh/write_20mer_script.sh ../sh/write_20mer_script.sh ${SPLIT_FILE_COUNT} ${FULL_20MER_INDEX} ${JOB_ID}
+SECOND_QSUB=`qsub -cwd -V -l mem_free=4G -t 1-${SPLIT_FILE_COUNT}:1 -tc 8 ../sh/find_20mer_offtargets.sh ${PWD} ${FULL_20MER_INDEX}`
 
-test_file run_find_20mer_offtargets.sh
+SECOND_ID=`echo $SECOND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
+
+echo "20mer alignment job ID is ${SECOND_ID}."
+
+
+
+echo ""
+echo "Submitting the merge job directly, held until the array job completes..."
+
+THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE}`
+
+THIRD_ID=`echo $SECOND_QSUB | head -1 | cut -d' ' -f3`
+
+echo "The second driver job ID is ${THIRD_ID}."
+
+
+
+echo ""
+echo "Array job complete."
+
 
 
 echo ""
