@@ -31,9 +31,13 @@ function test_file
 BASE=$1
 NAME=$2
 FIRST_ID=$3
+KEEP=$4
 
 
 echo "This run of driver 2 was spawned by job ID ${FIRST_ID}."
+
+if [ "$KEEP" = "off" ]; then rm -r split_20mer/ ; fi
+
 
 
 # Unzip the list of 12mer and 20mer positions and sequence
@@ -67,9 +71,13 @@ echo "Concatenating the offtarget 20mer counts, removing 20mers with any offtarg
 
 test_file ${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed.gz
 
+if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq ; else gzip ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq ; fi
+if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_12mers_offtargets ; else gzip ${BASE}_pamlist_12mers_offtargets ; fi
 
 
-# rm -r offtarget_20mer_counts/
+
+if [ "$KEEP" = "off" ]; then rm -r offtarget_20mer_counts/ ; fi
+
 
 
 # Count the number of entires in the BED file
@@ -94,10 +102,12 @@ echo "There are ${LINECOUNT} entries."
 
 test_file ${BASE}_pamlist_20mer_no20offtarg_scored.bed.gz
 
+if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_20mer_no20offtarg_noscore_offtargsort.bed.gz ; fi
+
 
 
 echo ""
-echo "Driver 2 Finished."
+echo "Driver 2 finished."
 
 exit 0
 

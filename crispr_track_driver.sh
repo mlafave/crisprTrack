@@ -77,6 +77,7 @@ Usage: ./crispr_track_driver.sh [options] input_genome.fa
 	Options:
 	-h	print this help message and exit
 	-i	path to the index basename, if available
+	-k	keep intermediate files that are deleted by default
 	-l	an even number of lines to use per file when aligning 20mers
 	-n	name
 	-v	print version and quit
@@ -95,8 +96,9 @@ EOF
 
 NAME="crisprs"
 LINE_COUNT=5000000
+KEEP=off
 
-while getopts "hi:l:n:v" OPTION
+while getopts "hi:kl:n:v" OPTION
 do
 	case $OPTION in
     	h)
@@ -105,6 +107,9 @@ do
     		;;
     	i)
     		INDEX_INPUT=$OPTARG
+    		;;
+    	k)
+    		KEEP=on
     		;;
     	l)
     		LINE_COUNT=$OPTARG
@@ -339,6 +344,8 @@ cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
 
 test_file ${BASE}_pamlist_20mers_noneg.tabseq.gz
 
+if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_12mers_noneg.tabseq.gz; fi
+
 
 
 echo ""
@@ -351,6 +358,8 @@ cat ${BASE}_naglist_12mers_noneg.tabseq.gz \
 
 test_file ${BASE}_naglist_20mers_noneg.tabseq.gz
 
+if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_12mers_noneg.tabseq.gz; fi
+
 
 
 echo ""
@@ -362,6 +371,8 @@ echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
 	${BASE}_pam_nag_20mercounts_allsites.fa
 
 test_file ${BASE}_pam_nag_20mercounts_allsites.fa
+
+if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_20mers_noneg.tabseq.gz; fi
 
 
 
@@ -396,6 +407,8 @@ echo "Removing N-entries from the NGG 20mer tabseq & capitalizing..."
 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq
 
 test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+
+if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_20mers_noneg.tabseq.gz; fi
 
 
 
@@ -455,7 +468,7 @@ echo "20mer alignment job ID is ${SECOND_ID}."
 echo ""
 echo "Submitting the merge job directly, held until the array job completes..."
 
-THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE} ${NAME} ${JOB_ID}`
+THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE} ${NAME} ${JOB_ID} ${KEEP}`
 
 THIRD_ID=`echo $THIRD_QSUB | head -1 | cut -d' ' -f3`
 
@@ -469,6 +482,6 @@ echo "Array job complete."
 
 
 echo ""
-echo "Driver 1 Finished."
+echo "Driver 1 finished."
 
 exit 0;
