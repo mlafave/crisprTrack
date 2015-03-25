@@ -339,11 +339,6 @@ echo "NAG merge job ID is ${NAGMERGE_ID}."
 
 
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
 
 
 
@@ -352,15 +347,29 @@ exit 0
 # alignment query; as such, this does not need to be repeated for the NAG
 # entires.
 
+# echo ""
+# echo "Making a FASTA file of all NGG-associated 12mers..."
+# 
+# ../sh/make_12mer_query_fasta.sh \
+# 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
+# 	${BASE}_pamlist_12mers_noneg_1each_noN.fa
+# 
+# test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
+
+
+PAM12FASTA_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${PAMMERGE_ID} ../sh/make_12mer_query_fasta_qsub.sh ${BASE}_pamlist_12mers_noneg.tabseq.gz ${BASE}_pamlist_12mers_noneg_1each_noN.fa`
+
+PAM12FASTA_ID=`echo $PAM12FASTA_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM 12mer query FASTA job ID is ${PAM12FASTA_ID}."
+
+
+
 echo ""
-echo "Making a FASTA file of all NGG-associated 12mers..."
+echo "Done for the time being."
+exit 0
 
-../sh/make_12mer_query_fasta.sh \
-	${BASE}_pamlist_12mers_noneg.tabseq.gz \
-	${BASE}_pamlist_12mers_noneg_1each_noN.fa
-
-test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
-
+############################################################################
 
 
 # Make a FASTA of all NGG and NAG sites, indicating how often each shows up as
