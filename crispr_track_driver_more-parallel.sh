@@ -314,6 +314,31 @@ echo "NAG alignment job ID is ${NAGFIND_ID}."
 
 
 
+# Merge the split files back together
+
+echo ""
+echo "Merging the NGG files..."
+
+PAMMERGE_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${PAMFIND_ID} ../sh/merge.sh ${PWD}/processed_PAMinput ${PWD}/split_PAMinput ${BASE}_pamlist_12mers_noneg.tabseq ${KEEP}`
+
+PAMMERGE_ID=`echo $PAMMERGE_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM merge job ID is ${PAMMERGE_ID}."
+
+
+
+echo ""
+echo "Merging the NAG files..."
+
+NAGMERGE_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${NAGFIND_ID} ../sh/merge.sh ${PWD}/processed_NAGinput ${PWD}/split_NAGinput ${BASE}_naglist_12mers_noneg.tabseq ${KEEP}`
+
+NAGMERGE_ID=`echo $NAGMERGE_QSUB | head -1 | cut -d' ' -f3`
+
+echo "NAG merge job ID is ${NAGMERGE_ID}."
+
+
+
+
 echo ""
 echo "Done for the time being."
 exit 0
