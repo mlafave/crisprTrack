@@ -235,25 +235,10 @@ fi
 
 # Prepare to identify all NGG sites in the genome in parallel
 
-# PAM_LINES=`cat ../input/pamlist.fa | wc -l | awk '{print $1/2}'`
-# 
-# mkdir split_NGG
-# cd split_NGG
-# 
-# ../../sh/split_20mers.sh ${PAM_LINES} ../../input/pamlist.fa
-# 
-# test_file split_000000000000
-# 
-# cd ..
-# 
-# mkdir NGG_counts
-# 
-# NGG_SPLIT_FILE_COUNT=`ls split_NGG/ | wc -l`
-# 
 
 
 echo ""
-echo "Splitting the PAM input..."
+echo "Splitting the NGG input..."
 
 PAMSPLIT_QSUB=`qsub -cwd -V -l mem_free=4G ../sh/split_wrapper.sh PAMinput 2 ${PARENT}/input/pamlist.fa on`
 
@@ -264,7 +249,7 @@ echo "PAM split job ID is ${PAMSPLIT_ID}."
 
 
 echo ""
-echo "Submitting the array job directly..."
+echo "Identifying all NGG sites & fetching 12mer sequence..."
 
 PAMFIND_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${PAMSPLIT_ID} -t 1-16:1 -tc 8 ../sh/get_all_12mer_seq_array.sh ${PWD}/processed_PAMinput ${PWD}/split_PAMinput ${FULL_INDEX} ${GENOME}`
 
@@ -273,11 +258,6 @@ PAMFIND_ID=`echo $PAMFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 echo "NGG alignment job ID is ${PAMFIND_ID}."
 
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
 
 # Then you need to collapse all those outputs into one file, but you'll need
 # -hold_jid to do so.
@@ -286,30 +266,60 @@ exit 0
 
 # Identify all NGG sites in the genome
 
+# echo ""
+# echo "Identifying all NGG sites & fetching 12mer sequence..."
+# 
+# ../sh/get_all_12mer_seq.sh \
+# 	${FULL_INDEX} \
+# 	../input/pamlist.fa \
+# 	${GENOME} \
+# 	${BASE}_pamlist_12mers_noneg.tabseq
+# 
+# test_file ${BASE}_pamlist_12mers_noneg.tabseq.gz
+# 
+# 
+# # Identify all NAG sites in the genome
+# 
+# echo ""
+# echo "Identifying all NAG sites & fetching 12mer sequence..."
+# 
+# ../sh/get_all_12mer_seq.sh \
+# 	${FULL_INDEX} \
+# 	../input/naglist.fa \
+# 	${GENOME} \
+# 	${BASE}_naglist_12mers_noneg.tabseq
+# 
+# test_file ${BASE}_naglist_12mers_noneg.tabseq.gz
+
+
 echo ""
-echo "Identifying all NGG sites & fetching 12mer sequence..."
+echo "Splitting the NAG input..."
 
-../sh/get_all_12mer_seq.sh \
-	${FULL_INDEX} \
-	../input/pamlist.fa \
-	${GENOME} \
-	${BASE}_pamlist_12mers_noneg.tabseq
+NAGSPLIT_QSUB=`qsub -cwd -V -l mem_free=4G ../sh/split_wrapper.sh NAGinput 2 ${PARENT}/input/naglist.fa on`
 
-test_file ${BASE}_pamlist_12mers_noneg.tabseq.gz
+NAGSPLIT_ID=`echo $NAGSPLIT_QSUB | head -1 | cut -d' ' -f3`
+
+echo "NAG split job ID is ${NAGSPLIT_ID}."
 
 
-# Identify all NAG sites in the genome
 
 echo ""
 echo "Identifying all NAG sites & fetching 12mer sequence..."
 
-../sh/get_all_12mer_seq.sh \
-	${FULL_INDEX} \
-	../input/naglist.fa \
-	${GENOME} \
-	${BASE}_naglist_12mers_noneg.tabseq
+NAGFIND_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${NAGSPLIT_ID} -t 1-16:1 -tc 8 ../sh/get_all_12mer_seq_array.sh ${PWD}/processed_NAGinput ${PWD}/split_NAGinput ${FULL_INDEX} ${GENOME}`
 
-test_file ${BASE}_naglist_12mers_noneg.tabseq.gz
+NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
+
+echo "NAG alignment job ID is ${NAGFIND_ID}."
+
+
+
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
+
 
 
 # Make an NGG FASTA file that represents each sequence only once, and that does
