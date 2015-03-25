@@ -1,0 +1,30 @@
+# functions
+
+function throw_flag_error
+{
+	echo >&2 ERROR: $1
+	touch kill_flag
+	exit 1
+}
+
+
+function find_or_flag
+{
+	if 
+		[ -f $1 ]
+	then 
+		echo "$1 detected."
+	else  
+		throw_flag_error "$1 was not detected!"
+	fi
+}
+
+
+function test_flag
+{
+	if 
+		[ -f $1 ]
+	then 
+		exit 1
+	fi
+}
