@@ -89,7 +89,7 @@ EOF
 print_version()
 {
 	cat <<EOF
-0.1.0
+0.2.0
 EOF
 }
 
