@@ -175,12 +175,12 @@ if [[ $INDEX_INPUT ]]
 then
 	FULL_INDEX=`full_path $INDEX_INPUT`
 	
-	verify_index ${FULL_INDEX}.1.ebwt
-	verify_index ${FULL_INDEX}.2.ebwt
-	verify_index ${FULL_INDEX}.3.ebwt
-	verify_index ${FULL_INDEX}.4.ebwt
-	verify_index ${FULL_INDEX}.rev.1.ebwt
-	verify_index ${FULL_INDEX}.rev.2.ebwt
+	verify_index ${FULL_INDEX}.1.ebwt*
+	verify_index ${FULL_INDEX}.2.ebwt*
+	verify_index ${FULL_INDEX}.3.ebwt*
+	verify_index ${FULL_INDEX}.4.ebwt*
+	verify_index ${FULL_INDEX}.rev.1.ebwt*
+	verify_index ${FULL_INDEX}.rev.2.ebwt*
 	
 fi
 
@@ -222,12 +222,12 @@ then
 	
 	cd ..
 	
-	verify_index ${FULL_INDEX}.1.ebwt
-	verify_index ${FULL_INDEX}.2.ebwt
-	verify_index ${FULL_INDEX}.3.ebwt
-	verify_index ${FULL_INDEX}.4.ebwt
-	verify_index ${FULL_INDEX}.rev.1.ebwt
-	verify_index ${FULL_INDEX}.rev.2.ebwt
+	verify_index ${FULL_INDEX}.1.ebwt*
+	verify_index ${FULL_INDEX}.2.ebwt*
+	verify_index ${FULL_INDEX}.3.ebwt*
+	verify_index ${FULL_INDEX}.4.ebwt*
+	verify_index ${FULL_INDEX}.rev.1.ebwt*
+	verify_index ${FULL_INDEX}.rev.2.ebwt*
 	
 fi
 
@@ -460,36 +460,52 @@ echo "PAM + NAG 12mer index FASTA job ID is ${INDEX12FASTA_ID}."
 
 
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
-
 # Build the NGG/NAG index in the indexes subdirectory.
 
 echo ""
 echo "Making the 12mer index..."
 
-cd indexes
+MAKE12INDEX_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${INDEX12FASTA_ID} \
+	../sh/build_index_wrapper.sh \
+	${WORKDIR}/${BASE}_pam_nag_12mercounts_allsites.fa \
+	${BASE}_pam_nag_12mercounts_allsites`
 
-../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_12mercounts_allsites
+MAKE12INDEX_ID=`echo $MAKE12INDEX_QSUB | head -1 | cut -d' ' -f3`
 
-FULL_12MER_INDEX=${PWD}/${BASE}_pam_nag_12mercounts_allsites
-
-verify_index ${FULL_12MER_INDEX}.1.ebwt
-verify_index ${FULL_12MER_INDEX}.2.ebwt
-verify_index ${FULL_12MER_INDEX}.3.ebwt
-verify_index ${FULL_12MER_INDEX}.4.ebwt
-verify_index ${FULL_12MER_INDEX}.rev.1.ebwt
-verify_index ${FULL_12MER_INDEX}.rev.2.ebwt
-
-cd ..
-
-echo "Deleting the 12mer NGG/NAG FASTA..."
-rm ${BASE}_pam_nag_12mercounts_allsites.fa
+echo "PAM + NAG 12mer build-index job ID is ${MAKE12INDEX_ID}."
 
 
+# Output is ${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites.1.ebwt,
+# etc., unless it ends in .ebwtl
+
+# cd indexes
+# 
+# ../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_12mercounts_allsites
+# 
+# FULL_12MER_INDEX=${PWD}/${BASE}_pam_nag_12mercounts_allsites
+# 
+# verify_index ${FULL_12MER_INDEX}.1.ebwt
+# verify_index ${FULL_12MER_INDEX}.2.ebwt
+# verify_index ${FULL_12MER_INDEX}.3.ebwt
+# verify_index ${FULL_12MER_INDEX}.4.ebwt
+# verify_index ${FULL_12MER_INDEX}.rev.1.ebwt
+# verify_index ${FULL_12MER_INDEX}.rev.2.ebwt
+# 
+# cd ..
+# 
+# echo "Deleting the 12mer NGG/NAG FASTA..."
+# rm ${BASE}_pam_nag_12mercounts_allsites.fa
+
+
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
 
 # Map 12mers with bowtie, using -v 1. This detects the number of
 # potentially-cutting CRISPRs for which the seed region is fewer than 2
