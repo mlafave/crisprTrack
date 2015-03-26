@@ -240,7 +240,14 @@ fi
 echo ""
 echo "Splitting the NGG input..."
 
-PAMSPLIT_QSUB=`qsub -cwd -V -l mem_free=4G ../sh/split_wrapper.sh PAMinput 2 ${PARENT}/input/pamlist.fa on`
+PAMSPLIT_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	../sh/split_wrapper.sh \
+	PAMinput \
+	2 \
+	${PARENT}/input/pamlist.fa on`
 
 PAMSPLIT_ID=`echo $PAMSPLIT_QSUB | head -1 | cut -d' ' -f3`
 
@@ -251,7 +258,18 @@ echo "PAM split job ID is ${PAMSPLIT_ID}."
 echo ""
 echo "Identifying all NGG sites & fetching 12mer sequence..."
 
-PAMFIND_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${PAMSPLIT_ID} -t 1-16:1 -tc 8 ../sh/get_all_12mer_seq_array.sh ${PWD}/processed_PAMinput ${PWD}/split_PAMinput ${FULL_INDEX} ${GENOME}`
+PAMFIND_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAMSPLIT_ID} \
+	-t 1-16:1 \
+	-tc 8 \
+	../sh/get_all_12mer_seq_array.sh \
+	${PWD}/processed_PAMinput \
+	${PWD}/split_PAMinput \
+	${FULL_INDEX} \
+	${GENOME}`
 
 PAMFIND_ID=`echo $PAMFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 
@@ -295,7 +313,14 @@ echo "NGG alignment job ID is ${PAMFIND_ID}."
 echo ""
 echo "Splitting the NAG input..."
 
-NAGSPLIT_QSUB=`qsub -cwd -V -l mem_free=4G ../sh/split_wrapper.sh NAGinput 2 ${PARENT}/input/naglist.fa on`
+NAGSPLIT_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	../sh/split_wrapper.sh \
+	NAGinput \
+	2 \
+	${PARENT}/input/naglist.fa on`
 
 NAGSPLIT_ID=`echo $NAGSPLIT_QSUB | head -1 | cut -d' ' -f3`
 
@@ -306,7 +331,18 @@ echo "NAG split job ID is ${NAGSPLIT_ID}."
 echo ""
 echo "Identifying all NAG sites & fetching 12mer sequence..."
 
-NAGFIND_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${NAGSPLIT_ID} -t 1-16:1 -tc 8 ../sh/get_all_12mer_seq_array.sh ${PWD}/processed_NAGinput ${PWD}/split_NAGinput ${FULL_INDEX} ${GENOME}`
+NAGFIND_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${NAGSPLIT_ID} \
+	-t 1-16:1 \
+	-tc 8 \
+	../sh/get_all_12mer_seq_array.sh \
+	${PWD}/processed_NAGinput \
+	${PWD}/split_NAGinput \
+	${FULL_INDEX} \
+	${GENOME}`
 
 NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 
@@ -319,7 +355,16 @@ echo "NAG alignment job ID is ${NAGFIND_ID}."
 echo ""
 echo "Merging the NGG files..."
 
-PAMMERGE_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${PAMFIND_ID} ../sh/merge.sh ${PWD}/processed_PAMinput ${PWD}/split_PAMinput ${BASE}_pamlist_12mers_noneg.tabseq ${KEEP}`
+PAMMERGE_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAMFIND_ID} \
+	../sh/merge.sh \
+	${PWD}/processed_PAMinput \
+	${PWD}/split_PAMinput \
+	${BASE}_pamlist_12mers_noneg.tabseq \
+	${KEEP}`
 
 PAMMERGE_ID=`echo $PAMMERGE_QSUB | head -1 | cut -d' ' -f3`
 
@@ -330,7 +375,16 @@ echo "PAM merge job ID is ${PAMMERGE_ID}."
 echo ""
 echo "Merging the NAG files..."
 
-NAGMERGE_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${NAGFIND_ID} ../sh/merge.sh ${PWD}/processed_NAGinput ${PWD}/split_NAGinput ${BASE}_naglist_12mers_noneg.tabseq ${KEEP}`
+NAGMERGE_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${NAGFIND_ID} \
+	../sh/merge.sh \
+	${PWD}/processed_NAGinput \
+	${PWD}/split_NAGinput \
+	${BASE}_naglist_12mers_noneg.tabseq \
+	${KEEP}`
 
 NAGMERGE_ID=`echo $NAGMERGE_QSUB | head -1 | cut -d' ' -f3`
 
@@ -357,7 +411,14 @@ echo "NAG merge job ID is ${NAGMERGE_ID}."
 # test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
 
 
-PAM12FASTA_QSUB=`qsub -cwd -V -l mem_free=4G -hold_jid ${PAMMERGE_ID} ../sh/make_12mer_query_fasta_qsub.sh ${BASE}_pamlist_12mers_noneg.tabseq.gz ${BASE}_pamlist_12mers_noneg_1each_noN.fa`
+PAM12FASTA_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAMMERGE_ID} \
+	../sh/make_12mer_query_fasta_qsub.sh \
+	${BASE}_pamlist_12mers_noneg.tabseq.gz \
+	${BASE}_pamlist_12mers_noneg_1each_noN.fa`
 
 PAM12FASTA_ID=`echo $PAM12FASTA_QSUB | head -1 | cut -d' ' -f3`
 
