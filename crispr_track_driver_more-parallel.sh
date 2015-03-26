@@ -247,7 +247,8 @@ PAMSPLIT_QSUB=`qsub \
 	../sh/split_wrapper.sh \
 	PAMinput \
 	2 \
-	${PARENT}/input/pamlist.fa on`
+	${PARENT}/input/pamlist.fa \
+	on`
 
 PAMSPLIT_ID=`echo $PAMSPLIT_QSUB | head -1 | cut -d' ' -f3`
 
@@ -277,8 +278,25 @@ echo "NGG alignment job ID is ${PAMFIND_ID}."
 
 
 
-# Then you need to collapse all those outputs into one file, but you'll need
-# -hold_jid to do so.
+# Merge the split files back together
+
+echo ""
+echo "Merging the NGG files..."
+
+PAMMERGE_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAMFIND_ID} \
+	../sh/merge.sh \
+	${PWD}/processed_PAMinput \
+	${PWD}/split_PAMinput \
+	${BASE}_pamlist_12mers_noneg.tabseq \
+	${KEEP}`
+
+PAMMERGE_ID=`echo $PAMMERGE_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM merge job ID is ${PAMMERGE_ID}."
 
 
 
@@ -320,7 +338,8 @@ NAGSPLIT_QSUB=`qsub \
 	../sh/split_wrapper.sh \
 	NAGinput \
 	2 \
-	${PARENT}/input/naglist.fa on`
+	${PARENT}/input/naglist.fa \
+	on`
 
 NAGSPLIT_ID=`echo $NAGSPLIT_QSUB | head -1 | cut -d' ' -f3`
 
@@ -349,28 +368,7 @@ NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 echo "NAG alignment job ID is ${NAGFIND_ID}."
 
 
-
 # Merge the split files back together
-
-echo ""
-echo "Merging the NGG files..."
-
-PAMMERGE_QSUB=`qsub \
-	-cwd \
-	-V \
-	-l mem_free=4G \
-	-hold_jid ${PAMFIND_ID} \
-	../sh/merge.sh \
-	${PWD}/processed_PAMinput \
-	${PWD}/split_PAMinput \
-	${BASE}_pamlist_12mers_noneg.tabseq \
-	${KEEP}`
-
-PAMMERGE_ID=`echo $PAMMERGE_QSUB | head -1 | cut -d' ' -f3`
-
-echo "PAM merge job ID is ${PAMMERGE_ID}."
-
-
 
 echo ""
 echo "Merging the NAG files..."
@@ -389,10 +387,6 @@ NAGMERGE_QSUB=`qsub \
 NAGMERGE_ID=`echo $NAGMERGE_QSUB | head -1 | cut -d' ' -f3`
 
 echo "NAG merge job ID is ${NAGMERGE_ID}."
-
-
-
-
 
 
 
@@ -465,23 +459,6 @@ echo "PAM + NAG 12mer index FASTA job ID is ${INDEX12FASTA_ID}."
 echo ""
 echo "Making the 12mer index..."
 
-MAKE12INDEX_QSUB=`qsub \
-	-cwd \
-	-V \
-	-l mem_free=4G \
-	-hold_jid ${INDEX12FASTA_ID} \
-	../sh/build_index_wrapper.sh \
-	${WORKDIR}/${BASE}_pam_nag_12mercounts_allsites.fa \
-	${BASE}_pam_nag_12mercounts_allsites`
-
-MAKE12INDEX_ID=`echo $MAKE12INDEX_QSUB | head -1 | cut -d' ' -f3`
-
-echo "PAM + NAG 12mer build-index job ID is ${MAKE12INDEX_ID}."
-
-
-# Output is ${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites.1.ebwt,
-# etc., unless it ends in .ebwtl
-
 # cd indexes
 # 
 # ../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_12mercounts_allsites
@@ -500,32 +477,79 @@ echo "PAM + NAG 12mer build-index job ID is ${MAKE12INDEX_ID}."
 # echo "Deleting the 12mer NGG/NAG FASTA..."
 # rm ${BASE}_pam_nag_12mercounts_allsites.fa
 
+MAKE12INDEX_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${INDEX12FASTA_ID} \
+	../sh/build_index_wrapper.sh \
+	${WORKDIR}/${BASE}_pam_nag_12mercounts_allsites.fa \
+	${BASE}_pam_nag_12mercounts_allsites`
+
+MAKE12INDEX_ID=`echo $MAKE12INDEX_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM + NAG 12mer build-index job ID is ${MAKE12INDEX_ID}."
+
+
+# Output is ${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites.1.ebwt,
+# etc., unless it ends in .ebwtl
+
+
+
+# Map 12mers with bowtie, using -v 1. This detects the number of
+# potentially-cutting CRISPRs for which the seed region is fewer than 2
+# mismatches different.
+
+# Split the query FASTA
+
+echo ""
+echo "Splitting the NGG 12mer FASTA input..."
+
+SPLIT12MER_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAM12FASTA_ID} \
+	../sh/split_wrapper.sh \
+	12mer \
+	${LINE_COUNT} \
+	${WORKDIR}/${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz \
+	${KEEP}`
+
+SPLIT12MER_ID=`echo $SPLIT12MER_QSUB | head -1 | cut -d' ' -f3`
+
+echo "12mer split job ID is ${SPLIT12MER_ID}."
+
+
+# Align
+
+# Merge
+
+
+
+# echo ""
+# echo "Counting NGG 12mer offtargets..."
+
+# ../sh/find_12mer_offtargets.sh \
+# 	${FULL_12MER_INDEX} \
+# 	${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz \
+# 	${BASE}_pamlist_12mers_offtargets
+# 
+# test_file ${BASE}_pamlist_12mers_offtargets.gz
+# 
+# 
+# 
+# echo "Deleting the FASTA file of all NGG-associated 12mers..."
+# rm ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
+
+
+
 
 echo ""
 echo "Done for the time being."
 exit 0
 
 ############################################################################
-
-# Map 12mers with bowtie, using -v 1. This detects the number of
-# potentially-cutting CRISPRs for which the seed region is fewer than 2
-# mismatches different.
-
-echo ""
-echo "Counting NGG 12mer offtargets..."
-
-../sh/find_12mer_offtargets.sh \
-	${FULL_12MER_INDEX} \
-	${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz \
-	${BASE}_pamlist_12mers_offtargets
-
-test_file ${BASE}_pamlist_12mers_offtargets.gz
-
-
-
-echo "Deleting the FASTA file of all NGG-associated 12mers..."
-rm ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
-
 
 
 echo ""
