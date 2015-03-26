@@ -401,8 +401,8 @@ echo "NAG merge job ID is ${NAGMERGE_ID}."
 # alignment query; as such, this does not need to be repeated for the NAG
 # entires.
 
-# echo ""
-# echo "Making a FASTA file of all NGG-associated 12mers..."
+echo ""
+echo "Making a FASTA file of all NGG-associated 12mers..."
 # 
 # ../sh/make_12mer_query_fasta.sh \
 # 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
@@ -424,13 +424,8 @@ PAM12FASTA_ID=`echo $PAM12FASTA_QSUB | head -1 | cut -d' ' -f3`
 
 echo "PAM 12mer query FASTA job ID is ${PAM12FASTA_ID}."
 
+# Output is ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
 
-
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
 
 
 # Make a FASTA of all NGG and NAG sites, indicating how often each shows up as
@@ -438,15 +433,38 @@ exit 0
 
 echo ""
 echo "Making a FASTA file of all NGG- and NAG-associated 12mers..."
+# 
+# ../sh/make_index_fasta.sh \
+# 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
+# 	${BASE}_naglist_12mers_noneg.tabseq.gz \
+# 	${BASE}_pam_nag_12mercounts_allsites.fa
+# 
+# test_file ${BASE}_pam_nag_12mercounts_allsites.fa
 
-../sh/make_index_fasta.sh \
+
+INDEX12FASTA_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAMMERGE_ID},${NAGMERGE_ID} \
+	../sh/make_index_fasta_qsub.sh \
 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
 	${BASE}_naglist_12mers_noneg.tabseq.gz \
-	${BASE}_pam_nag_12mercounts_allsites.fa
+	${BASE}_pam_nag_12mercounts_allsites.fa`
 
-test_file ${BASE}_pam_nag_12mercounts_allsites.fa
+INDEX12FASTA_ID=`echo $INDEX12FASTA_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM + NAG 12mer index FASTA job ID is ${INDEX12FASTA_ID}."
+
+# Output is ${BASE}_pam_nag_12mercounts_allsites.fa
 
 
+
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
 
 # Build the NGG/NAG index in the indexes subdirectory.
 
