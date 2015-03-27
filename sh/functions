@@ -25,6 +25,7 @@ function test_flag
 	if 
 		[ -f $1 ]
 	then 
+		echo "$1 detected. Exiting."
 		exit 1
 	fi
 }
