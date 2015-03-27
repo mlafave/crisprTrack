@@ -650,25 +650,41 @@ PAM20MERSEQ_ID=`echo $PAM20MERSEQ_QSUB | head -1 | cut -d' ' -f3`
 echo "PAM 20mer sequence fetch job ID is ${PAM20MERSEQ_ID}."
 
 
+
+echo ""
+echo "Fetching the sequence of all NAG-associated 20mers..."
+
+# cat ${BASE}_naglist_12mers_noneg.tabseq.gz \
+# 	| ../sh/make_20mer_seq.sh \
+# 	${GENOME} \
+# 	${BASE}_naglist_20mers_noneg.tabseq
+# 
+# test_file ${BASE}_naglist_20mers_noneg.tabseq.gz
+# 
+# if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_12mers_noneg.tabseq.gz; fi
+
+NAG20MERSEQ_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${NAGMERGE_ID} \
+	../sh/make_20mer_seq_qsub.sh \
+	${BASE}_naglist_12mers_noneg.tabseq.gz \
+	${GENOME} \
+	${BASE}_naglist_20mers_noneg.tabseq \
+	${KEEP}`
+
+NAG20MERSEQ_ID=`echo $NAG20MERSEQ_QSUB | head -1 | cut -d' ' -f3`
+
+echo "NAG 20mer sequence fetch job ID is ${NAG20MERSEQ_ID}."
+
+
+
 echo ""
 echo "Done for the time being."
 exit 0
 
 ############################################################################
-
-echo ""
-echo "Fetching the sequence of all NAG-associated 20mers..."
-
-cat ${BASE}_naglist_12mers_noneg.tabseq.gz \
-	| ../sh/make_20mer_seq.sh \
-	${GENOME} \
-	${BASE}_naglist_20mers_noneg.tabseq
-
-test_file ${BASE}_naglist_20mers_noneg.tabseq.gz
-
-if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_12mers_noneg.tabseq.gz; fi
-
-
 
 echo ""
 echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
