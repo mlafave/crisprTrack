@@ -523,6 +523,60 @@ echo "12mer split job ID is ${SPLIT12MER_ID}."
 
 # Align
 
+echo ""
+echo "Counting NGG 12mer offtargets via alignment..."
+
+# ALIGN12MER_QSUB=`qsub \
+# 	-cwd \
+# 	-V \
+# 	-l mem_free=4G \
+# 	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
+# 	-t 1-\`ls split_12mer/ | wc -l\`:1 \
+# 	-tc 16 \
+# 	../sh/find_12mer_offtargets_array.sh \
+# 	${WORKDIR}/processed_12mer \
+# 	${WORKDIR}/split_12mer \
+# 	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
+# 
+# ALIGN12MER_ID=`echo $ALIGN12MER_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
+# 
+# echo "NGG alignment job ID is ${ALIGN12MER_ID}."
+
+
+ALIGN12MER_WRAPPER_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
+	../sh/find_12mer_offtargets_array_wrapper.sh \
+	${WORKDIR}/processed_12mer \
+	${WORKDIR}/split_12mer \
+	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
+
+ALIGN12MER_WRAPPER_ID=`echo $ALIGN12MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
+
+echo "12mer alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}."
+
+
+# Output is ${OUTDIR_PATH}/split_${NUMBER}_12merofftarg.gz
+
+
+
+# PAMFIND_QSUB=`qsub \
+# 	-cwd \
+# 	-V \
+# 	-l mem_free=4G \
+# 	-hold_jid ${PAMSPLIT_ID} \
+# 	-t 1-16:1 \
+# 	-tc 8 \
+# 	../sh/get_all_12mer_seq_array.sh \
+# 	${PWD}/processed_PAMinput \
+# 	${PWD}/split_PAMinput \
+# 	${FULL_INDEX} \
+# 	${GENOME}`
+
+
+
 # Merge
 
 
