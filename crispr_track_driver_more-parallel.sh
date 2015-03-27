@@ -681,23 +681,39 @@ echo "NAG 20mer sequence fetch job ID is ${NAG20MERSEQ_ID}."
 
 
 echo ""
+echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
+
+# ../sh/make_index_fasta.sh \
+# 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
+# 	${BASE}_naglist_20mers_noneg.tabseq.gz \
+# 	${BASE}_pam_nag_20mercounts_allsites.fa
+# 
+# test_file ${BASE}_pam_nag_20mercounts_allsites.fa
+# 
+# if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_20mers_noneg.tabseq.gz; fi
+
+
+INDEX20FASTA_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAM20MERSEQ_ID},${NAG20MERSEQ_ID} \
+	../sh/make_index_fasta_qsub.sh \
+	${BASE}_pamlist_20mers_noneg.tabseq.gz \
+	${BASE}_naglist_20mers_noneg.tabseq.gz \
+	${BASE}_pam_nag_20mercounts_allsites.fa`
+
+INDEX20FASTA_ID=`echo $INDEX20FASTA_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM + NAG 20mer index FASTA job ID is ${INDEX20FASTA_ID}."
+
+# Output is ${BASE}_pam_nag_20mercounts_allsites.fa
+
+echo ""
 echo "Done for the time being."
 exit 0
 
 ############################################################################
-
-echo ""
-echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
-
-../sh/make_index_fasta.sh \
-	${BASE}_pamlist_20mers_noneg.tabseq.gz \
-	${BASE}_naglist_20mers_noneg.tabseq.gz \
-	${BASE}_pam_nag_20mercounts_allsites.fa
-
-test_file ${BASE}_pam_nag_20mercounts_allsites.fa
-
-if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_20mers_noneg.tabseq.gz; fi
-
 
 
 echo ""
