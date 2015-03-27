@@ -500,6 +500,10 @@ echo "PAM + NAG 12mer build-index job ID is ${MAKE12INDEX_ID}."
 # potentially-cutting CRISPRs for which the seed region is fewer than 2
 # mismatches different.
 
+# Set the $TYPE variable
+
+TYPE='12mer'
+
 # Split the query FASTA
 
 echo ""
@@ -580,9 +584,26 @@ echo "12mer alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}."
 # Merge
 
 
+echo ""
+echo "Counting NGG 12mer offtargets..."
 
-# echo ""
-# echo "Counting NGG 12mer offtargets..."
+MERGE12MER_WRAPPER_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${ALIGN12MER_WRAPPER_ID} \
+	../sh/merge_wrapper.sh \
+	${TYPE} \
+	${WORKDIR}/align_${TYPE}_ID \
+	${WORKDIR}/processed_12mer \
+	${WORKDIR}/split_12mer \
+	${BASE}_pamlist_12mers_offtargets \
+	${KEEP}`
+
+MERGE12MER_WRAPPER_ID=`echo $MERGE12MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
+
+echo "${TYPE} merge WRAPPER job ID is ${MERGE12MER_WRAPPER_ID}."
+
 
 # ../sh/find_12mer_offtargets.sh \
 # 	${FULL_12MER_INDEX} \
