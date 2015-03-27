@@ -606,6 +606,7 @@ MERGE12MER_WRAPPER_ID=`echo $MERGE12MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
 
 echo "${TYPE} merge WRAPPER job ID is ${MERGE12MER_WRAPPER_ID}."
 
+# Output is {BASE}_pamlist_12mers_offtargets.gz
 
 # ../sh/find_12mer_offtargets.sh \
 # 	${FULL_12MER_INDEX} \
@@ -621,27 +622,39 @@ echo "${TYPE} merge WRAPPER job ID is ${MERGE12MER_WRAPPER_ID}."
 
 
 
+echo ""
+echo "Fetching the sequence of all NGG-associated 20mers..."
+
+# cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
+# 	| ../sh/make_20mer_seq.sh \
+# 	${GENOME} \
+# 	${BASE}_pamlist_20mers_noneg.tabseq
+# 
+# test_file ${BASE}_pamlist_20mers_noneg.tabseq.gz
+# 
+# if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_12mers_noneg.tabseq.gz; fi
+
+PAM20MERSEQ_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAMMERGE_ID} \
+	../sh/make_20mer_seq_qsub.sh \
+	${BASE}_pamlist_12mers_noneg.tabseq.gz \
+	${GENOME} \
+	${BASE}_pamlist_20mers_noneg.tabseq \
+	${KEEP}`
+
+PAM20MERSEQ_ID=`echo $PAM20MERSEQ_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM 20mer sequence fetch job ID is ${PAM20MERSEQ_ID}."
+
 
 echo ""
 echo "Done for the time being."
 exit 0
 
 ############################################################################
-
-
-echo ""
-echo "Fetching the sequence of all NGG-associated 20mers..."
-
-cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
-	| ../sh/make_20mer_seq.sh \
-	${GENOME} \
-	${BASE}_pamlist_20mers_noneg.tabseq
-
-test_file ${BASE}_pamlist_20mers_noneg.tabseq.gz
-
-if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_12mers_noneg.tabseq.gz; fi
-
-
 
 echo ""
 echo "Fetching the sequence of all NAG-associated 20mers..."
