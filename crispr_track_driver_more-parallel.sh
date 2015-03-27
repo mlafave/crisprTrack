@@ -709,6 +709,18 @@ echo "PAM + NAG 20mer index FASTA job ID is ${INDEX20FASTA_ID}."
 
 # Output is ${BASE}_pam_nag_20mercounts_allsites.fa
 
+echo ""
+echo "Removing the 20mer NAG tabseq file..."
+
+qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${INDEX20FASTA_ID} \
+	../sh/rm_qsub.sh \
+	${BASE}_naglist_20mers_noneg.tabseq.gz
+
+# No job needs to wait on that, so there's no need to capture the job ID.
 
 
 echo ""
