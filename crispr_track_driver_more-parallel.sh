@@ -709,34 +709,50 @@ echo "PAM + NAG 20mer index FASTA job ID is ${INDEX20FASTA_ID}."
 
 # Output is ${BASE}_pam_nag_20mercounts_allsites.fa
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
 
 
 echo ""
 echo "Making the 20mer index..."
 
-cd indexes/
+# cd indexes/
+# 
+# ../../sh/build_index.sh ../${BASE}_pam_nag_20mercounts_allsites.fa ${BASE}_pam_nag_20mercounts_allsites
+# 
+# FULL_20MER_INDEX=${PWD}/${BASE}_pam_nag_20mercounts_allsites
+# 
+# verify_index ${FULL_20MER_INDEX}.1.ebwt
+# verify_index ${FULL_20MER_INDEX}.2.ebwt
+# verify_index ${FULL_20MER_INDEX}.3.ebwt
+# verify_index ${FULL_20MER_INDEX}.4.ebwt
+# verify_index ${FULL_20MER_INDEX}.rev.1.ebwt
+# verify_index ${FULL_20MER_INDEX}.rev.2.ebwt
+# 
+# cd ..
+# 
+# echo "Deleting the 20mer NGG/NAG FASTA..."
+# rm ${BASE}_pam_nag_20mercounts_allsites.fa 
 
-../../sh/build_index.sh ../${BASE}_pam_nag_20mercounts_allsites.fa ${BASE}_pam_nag_20mercounts_allsites
 
-FULL_20MER_INDEX=${PWD}/${BASE}_pam_nag_20mercounts_allsites
 
-verify_index ${FULL_20MER_INDEX}.1.ebwt
-verify_index ${FULL_20MER_INDEX}.2.ebwt
-verify_index ${FULL_20MER_INDEX}.3.ebwt
-verify_index ${FULL_20MER_INDEX}.4.ebwt
-verify_index ${FULL_20MER_INDEX}.rev.1.ebwt
-verify_index ${FULL_20MER_INDEX}.rev.2.ebwt
+MAKE20INDEX_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${INDEX20FASTA_ID} \
+	../sh/build_index_wrapper.sh \
+	${WORKDIR}/${BASE}_pam_nag_20mercounts_allsites.fa \
+	${BASE}_pam_nag_20mercounts_allsites`
 
-cd ..
+MAKE20INDEX_ID=`echo $MAKE20INDEX_QSUB | head -1 | cut -d' ' -f3`
 
-echo "Deleting the 20mer NGG/NAG FASTA..."
-rm ${BASE}_pam_nag_20mercounts_allsites.fa 
+echo "PAM + NAG 20mer build-index job ID is ${MAKE20INDEX_ID}."
 
+
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
 
 
 echo ""
