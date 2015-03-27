@@ -4,8 +4,8 @@ source ~/.bashrc
 source ../sh/functions
 
 # Intended to perform the necessary actions surrounding the submission of the
-# 12mer off-target-counting script. This wrapper waits until the input is
-# split, counts the number of input files, and then uses that number to
+# 12mer or 20mer off-target-counting script. This wrapper waits until the input
+# is split, counts the number of input files, and then uses that number to
 # determine the number of array jobs. It also keeps track of the job number of
 # said array submission, and prints it to a file so subsequent scripts can find
 # and use it.
@@ -17,39 +17,41 @@ test_flag kill_flag
 
 # Read in input
 
-OUTDIR_PATH=$1
-SPLITDIR_PATH=$2 # Use an absolute path
-INDEX=$3
+SCRIPT=$1
+TYPE=$2 # 12mer or 20mer
+OUTDIR_PATH=$3
+SPLITDIR_PATH=$4 # Use an absolute path
+INDEX=$5
 
 
 # Count the number of split input files
 
-SPLIT_12MER_COUNT=`ls ${SPLITDIR_PATH} | wc -l`
+SPLIT_COUNT=`ls ${SPLITDIR_PATH} | wc -l`
 
 
 # Submit the array job
 
-ALIGN12MER_QSUB=`qsub \
+ALIGN_QSUB=`qsub \
 	-cwd \
 	-V \
 	-l mem_free=4G \
-	-t 1-${SPLIT_12MER_COUNT}:1 \
+	-t 1-${SPLIT_COUNT}:1 \
 	-tc 16 \
-	../sh/find_12mer_offtargets_array.sh \
+	${SCRIPT} \
 	${OUTDIR_PATH} \
 	${SPLITDIR_PATH} \
 	${INDEX}`
 
-ALIGN12MER_ID=`echo $ALIGN12MER_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
+ALIGN_ID=`echo $ALIGN_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 
-echo "NGG alignment job ID is ${ALIGN12MER_ID}."
+echo "${TYPE} alignment job ID is ${ALIGN_ID}."
 
 
 # Record that job ID in a file that can be referred to later by the merge step.
 
-echo ${ALIGN12MER_ID} > align_12mer_ID
+echo ${ALIGN_ID} > align_${TYPE}_ID
 
-find_or_flag align_12mer_ID
+find_or_flag align_${TYPE}_ID
 
 
 exit 0

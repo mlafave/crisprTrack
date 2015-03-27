@@ -552,14 +552,16 @@ ALIGN12MER_WRAPPER_QSUB=`qsub \
 	-V \
 	-l mem_free=4G \
 	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
-	../sh/find_12mer_offtargets_array_wrapper.sh \
+	../sh/find_offtargets_array_wrapper.sh \
+	${PARENT}/sh/find_12mer_offtargets_array.sh \
+	${TYPE} \
 	${WORKDIR}/processed_12mer \
 	${WORKDIR}/split_12mer \
 	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
 
 ALIGN12MER_WRAPPER_ID=`echo $ALIGN12MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
 
-echo "12mer alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}."
+echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}."
 
 
 # Output is ${OUTDIR_PATH}/split_${NUMBER}_12merofftarg.gz
