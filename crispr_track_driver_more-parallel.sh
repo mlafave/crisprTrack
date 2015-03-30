@@ -515,7 +515,7 @@ SPLIT12MER_QSUB=`qsub \
 	-l mem_free=4G \
 	-hold_jid ${PAM12FASTA_ID} \
 	../sh/split_wrapper.sh \
-	12mer \
+	${TYPE} \
 	${LINE_COUNT} \
 	${WORKDIR}/${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz \
 	${KEEP}`
@@ -814,6 +814,74 @@ PAM20FASTA_ID=`echo $PAM20FASTA_QSUB | head -1 | cut -d' ' -f3`
 
 echo "PAM query FASTA job ID is ${PAM20FASTA_ID}."
 
+# Output is ${BASE}_pamlist_20mers_noneg_1each_noN.fa
+
+###########################
+
+# echo ""
+# echo "Splitting the NGG 20mer FASTA..."
+
+# mkdir split_20mer
+# cd split_20mer
+# 
+# ../../sh/split_20mers.sh ${LINE_COUNT} ../${BASE}_pamlist_20mers_noneg_1each_noN.fa
+# 
+# test_file split_000000000000
+# 
+# cd ..
+
+
+
+
+
+# echo ""
+# echo "Removing the unsplit NGG 20mer FASTA..."
+# rm ${BASE}_pamlist_20mers_noneg_1each_noN.fa
+# 
+# 
+# 
+# # Make a directory in which to put the output of the 20mer alignment
+# mkdir offtarget_20mer_counts
+# 
+# 
+# 
+# # Count the number of split files
+# SPLIT_FILE_COUNT=`ls split_20mer/ | wc -l`
+
+
+
+
+
+
+
+
+
+
+
+
+
+TYPE='20mer'
+
+# Split the query FASTA
+
+echo ""
+echo "Splitting the NGG 20mer FASTA input..."
+
+SPLIT20MER_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAM20FASTA_ID} \
+	../sh/split_wrapper.sh \
+	${TYPE} \
+	${LINE_COUNT} \
+	${WORKDIR}/${BASE}_pamlist_20mers_noneg_1each_noN.fa \
+	${KEEP}`
+
+SPLIT20MER_ID=`echo $SPLIT20MER_QSUB | head -1 | cut -d' ' -f3`
+
+echo "20mer split job ID is ${SPLIT20MER_ID}."
+
 
 echo ""
 echo "Done for the time being."
@@ -822,34 +890,49 @@ exit 0
 ############################################################################
 
 
+# Align
 
 echo ""
-echo "Splitting the NGG 20mer FASTA..."
+echo "Counting NGG 12mer offtargets via alignment..."
 
-mkdir split_20mer
-cd split_20mer
-
-../../sh/split_20mers.sh ${LINE_COUNT} ../${BASE}_pamlist_20mers_noneg_1each_noN.fa
-
-test_file split_000000000000
-
-cd ..
-
-
-
-echo ""
-echo "Removing the unsplit NGG 20mer FASTA..."
-rm ${BASE}_pamlist_20mers_noneg_1each_noN.fa
-
-
-
-# Make a directory in which to put the output of the 20mer alignment
-mkdir offtarget_20mer_counts
+# ALIGN12MER_QSUB=`qsub \
+# 	-cwd \
+# 	-V \
+# 	-l mem_free=4G \
+# 	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
+# 	-t 1-\`ls split_12mer/ | wc -l\`:1 \
+# 	-tc 16 \
+# 	../sh/find_12mer_offtargets_array.sh \
+# 	${WORKDIR}/processed_12mer \
+# 	${WORKDIR}/split_12mer \
+# 	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
+# 
+# ALIGN12MER_ID=`echo $ALIGN12MER_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
+# 
+# echo "NGG alignment job ID is ${ALIGN12MER_ID}."
 
 
+ALIGN12MER_WRAPPER_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
+	../sh/find_offtargets_array_wrapper.sh \
+	${PARENT}/sh/find_12mer_offtargets_array.sh \
+	${TYPE} \
+	${WORKDIR}/processed_12mer \
+	${WORKDIR}/split_12mer \
+	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
 
-# Count the number of split files
-SPLIT_FILE_COUNT=`ls split_20mer/ | wc -l`
+ALIGN12MER_WRAPPER_ID=`echo $ALIGN12MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
+
+echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}."
+
+
+# Output is ${OUTDIR_PATH}/split_${NUMBER}_12merofftarg.gz
+
+
+
 
 
 
