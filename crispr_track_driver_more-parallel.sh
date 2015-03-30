@@ -883,12 +883,6 @@ SPLIT20MER_ID=`echo $SPLIT20MER_QSUB | head -1 | cut -d' ' -f3`
 echo "20mer split job ID is ${SPLIT20MER_ID}."
 
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
-
 
 # Align
 
@@ -912,27 +906,32 @@ echo "Counting NGG 12mer offtargets via alignment..."
 # echo "NGG alignment job ID is ${ALIGN12MER_ID}."
 
 
-ALIGN12MER_WRAPPER_QSUB=`qsub \
+ALIGN20MER_WRAPPER_QSUB=`qsub \
 	-cwd \
 	-V \
 	-l mem_free=4G \
-	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
+	-hold_jid ${SPLIT20MER_ID},${MAKE20INDEX_ID} \
 	../sh/find_offtargets_array_wrapper.sh \
-	${PARENT}/sh/find_12mer_offtargets_array.sh \
+	${PARENT}/sh/find_20mer_offtargets_array.sh \
 	${TYPE} \
-	${WORKDIR}/processed_12mer \
-	${WORKDIR}/split_12mer \
-	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
+	${WORKDIR}/processed_20mer \
+	${WORKDIR}/split_20mer \
+	${WORKDIR}/indexes/${BASE}_pam_nag_20mercounts_allsites`
 
-ALIGN12MER_WRAPPER_ID=`echo $ALIGN12MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
+ALIGN20MER_WRAPPER_ID=`echo $ALIGN20MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
 
-echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}."
-
-
-# Output is ${OUTDIR_PATH}/split_${NUMBER}_12merofftarg.gz
+echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN20MER_WRAPPER_ID}."
 
 
+# Output is ${OUTDIR_PATH}/split_${NUMBER}_20merofftarg.gz
 
+
+
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
 
 
 
