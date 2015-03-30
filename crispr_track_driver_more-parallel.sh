@@ -760,23 +760,39 @@ MAKE20INDEX_ID=`echo $MAKE20INDEX_QSUB | head -1 | cut -d' ' -f3`
 echo "PAM + NAG 20mer build-index job ID is ${MAKE20INDEX_ID}."
 
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
 
 
 echo ""
 echo "Removing N-entries from the NGG 20mer tabseq & capitalizing..."
 
-../sh/capitalize_rmN_tabseq.sh \
+# ../sh/capitalize_rmN_tabseq.sh \
+# 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
+# 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq
+# 
+# test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+# 
+# if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_20mers_noneg.tabseq.gz; fi
+
+PAM20MERCAP_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAM20MERSEQ_ID} \
+	../sh/capitalize_rmN_tabseq_qsub.sh \
 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
-	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq
+	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq`
 
-test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+PAM20MERCAP_ID=`echo $PAM20MERCAP_QSUB | head -1 | cut -d' ' -f3`
 
-if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_20mers_noneg.tabseq.gz; fi
+echo "PAM capitalization and rm N job ID is ${PAM20MERCAP_ID}."
+
+# Output is ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
 
 
 
