@@ -780,7 +780,8 @@ PAM20MERCAP_QSUB=`qsub \
 	-hold_jid ${PAM20MERSEQ_ID} \
 	../sh/capitalize_rmN_tabseq_qsub.sh \
 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
-	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq`
+	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq \
+	${KEEP}`
 
 PAM20MERCAP_ID=`echo $PAM20MERCAP_QSUB | head -1 | cut -d' ' -f3`
 
@@ -788,23 +789,37 @@ echo "PAM capitalization and rm N job ID is ${PAM20MERCAP_ID}."
 
 # Output is ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
 
-echo ""
-echo "Done for the time being."
-exit 0
-
-############################################################################
-
 
 
 echo ""
 echo "Making a FASTA file of all NGG-associated 20mers..."
 
-../sh/make_20mer_query_fasta.sh \
+# ../sh/make_20mer_query_fasta.sh \
+# 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz \
+# 	${BASE}_pamlist_20mers_noneg_1each_noN.fa
+# 
+# 
+# test_file ${BASE}_pamlist_20mers_noneg_1each_noN.fa
+
+PAM20FASTA_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${PAM20MERCAP_ID} \
+	../sh/make_20mer_query_fasta_qsub.sh \
 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz \
-	${BASE}_pamlist_20mers_noneg_1each_noN.fa
+	${BASE}_pamlist_20mers_noneg_1each_noN.fa`
+
+PAM20FASTA_ID=`echo $PAM20FASTA_QSUB | head -1 | cut -d' ' -f3`
+
+echo "PAM query FASTA job ID is ${PAM20FASTA_ID}."
 
 
-test_file ${BASE}_pamlist_20mers_noneg_1each_noN.fa
+echo ""
+echo "Done for the time being."
+exit 0
+
+############################################################################
 
 
 
