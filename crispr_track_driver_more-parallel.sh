@@ -926,6 +926,35 @@ echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN20MER_WRAPPER_ID}.
 # Output is ${OUTDIR_PATH}/split_${NUMBER}_20merofftarg.gz
 
 
+echo ""
+echo "Combining 12 and 20mer offtarget info into one BED file..."
+
+END_QSUB=`qsub \
+	-cwd \
+	-V \
+	-l mem_free=4G \
+	-hold_jid ${MERGE12MER_WRAPPER_ID},${ALIGN20MER_WRAPPER_ID} \
+	../sh/crispr_track_end_driver_wrapper.sh \
+	merge_12mer_ID \
+	align_20mer_ID \
+	${WORKDIR}/processed_20mer \
+	${WORKDIR}/split_20mer \
+	${BASE} \
+	${NAME} \
+	${JOB_ID} \
+	${KEEP}`
+
+END_ID=`echo $END_QSUB | head -1 | cut -d' ' -f3`
+
+echo "The BED-making end WRAPPER job ID is ${END_ID}."
+
+
+
+
+
+
+
+
 
 echo ""
 echo "Done for the time being."
@@ -935,25 +964,25 @@ exit 0
 
 
 
-echo ""
-echo "Submitting the array job directly..."
+# echo ""
+# echo "Submitting the array job directly..."
+# 
+# SECOND_QSUB=`qsub -cwd -V -l mem_free=4G -t 1-${SPLIT_FILE_COUNT}:1 -tc 8 ../sh/find_20mer_offtargets.sh ${PWD} ${FULL_20MER_INDEX}`
+# 
+# SECOND_ID=`echo $SECOND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
+# 
+# echo "20mer alignment job ID is ${SECOND_ID}."
 
-SECOND_QSUB=`qsub -cwd -V -l mem_free=4G -t 1-${SPLIT_FILE_COUNT}:1 -tc 8 ../sh/find_20mer_offtargets.sh ${PWD} ${FULL_20MER_INDEX}`
-
-SECOND_ID=`echo $SECOND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
-
-echo "20mer alignment job ID is ${SECOND_ID}."
 
 
-
-echo ""
-echo "Submitting the merge job directly, held until the array job completes..."
-
-THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE} ${NAME} ${JOB_ID} ${KEEP}`
-
-THIRD_ID=`echo $THIRD_QSUB | head -1 | cut -d' ' -f3`
-
-echo "The second driver job ID is ${THIRD_ID}."
+# echo ""
+# echo "Submitting the merge job directly, held until the array job completes..."
+# 
+# THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE} ${NAME} ${JOB_ID} ${KEEP}`
+# 
+# THIRD_ID=`echo $THIRD_QSUB | head -1 | cut -d' ' -f3`
+# 
+# echo "The second driver job ID is ${THIRD_ID}."
 
 
 
