@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 source ~/.bashrc
-
+source sh/functions
 
 # Set up functions for file testing & error reporting.
 function throw_error
@@ -22,16 +22,6 @@ function test_file
 	fi
 }
 
-
-# function test_variable
-# {
-# 	if
-# 		[ ! $1 ]
-# 	then
-# 		print_usage
-# 		throw_error "required file or option is missing"
-# 	fi
-# }
 
 
 function verify_index
@@ -63,11 +53,6 @@ function full_path ()
 	echo $PATH
 }
 
-
-
-# Input:
-# * FASTA of the genome (preferably UCSC, I suppose, if that's where the tracks end up)
-# * Name, without spaces, of the working directory. If none given, default to "crisprTrack"
 
 
 print_usage()
@@ -154,14 +139,12 @@ fi
 
 
 
-# Programs needed:
-# * bedtools
-# * bowtie
-
 hash bedtools 2>/dev/null || throw_error "bedtools not found"
 hash bowtie 2>/dev/null || throw_error "bowtie not found"
 hash bowtie-build 2>/dev/null || throw_error "bowtie-build not found"
 hash perl 2>/dev/null || throw_error "perl not found"
+hash qsub 2>/dev/null || throw_error "qsub not found"
+
 
 # convert the input file to an absolute path
 GENOME=`full_path $GENOME_INPUT`
@@ -185,7 +168,6 @@ then
 fi
 
 
-### If there's a good way to make it so this doesn't need to run in this directory, do it.
 
 # Verify that the name does not have blanks
 
@@ -300,33 +282,7 @@ echo "PAM merge job ID is ${PAMMERGE_ID}."
 
 
 
-# Identify all NGG sites in the genome
-
-# echo ""
-# echo "Identifying all NGG sites & fetching 12mer sequence..."
-# 
-# ../sh/get_all_12mer_seq.sh \
-# 	${FULL_INDEX} \
-# 	../input/pamlist.fa \
-# 	${GENOME} \
-# 	${BASE}_pamlist_12mers_noneg.tabseq
-# 
-# test_file ${BASE}_pamlist_12mers_noneg.tabseq.gz
-# 
-# 
-# # Identify all NAG sites in the genome
-# 
-# echo ""
-# echo "Identifying all NAG sites & fetching 12mer sequence..."
-# 
-# ../sh/get_all_12mer_seq.sh \
-# 	${FULL_INDEX} \
-# 	../input/naglist.fa \
-# 	${GENOME} \
-# 	${BASE}_naglist_12mers_noneg.tabseq
-# 
-# test_file ${BASE}_naglist_12mers_noneg.tabseq.gz
-
+# Identify all NAG sites in the genome
 
 echo ""
 echo "Splitting the NAG input..."
@@ -368,6 +324,7 @@ NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 echo "NAG alignment job ID is ${NAGFIND_ID}."
 
 
+
 # Merge the split files back together
 
 echo ""
@@ -397,13 +354,6 @@ echo "NAG merge job ID is ${NAGMERGE_ID}."
 
 echo ""
 echo "Making a FASTA file of all NGG-associated 12mers..."
-# 
-# ../sh/make_12mer_query_fasta.sh \
-# 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
-# 	${BASE}_pamlist_12mers_noneg_1each_noN.fa
-# 
-# test_file ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
-
 
 PAM12FASTA_QSUB=`qsub \
 	-cwd \
@@ -427,14 +377,6 @@ echo "PAM 12mer query FASTA job ID is ${PAM12FASTA_ID}."
 
 echo ""
 echo "Making a FASTA file of all NGG- and NAG-associated 12mers..."
-# 
-# ../sh/make_index_fasta.sh \
-# 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
-# 	${BASE}_naglist_12mers_noneg.tabseq.gz \
-# 	${BASE}_pam_nag_12mercounts_allsites.fa
-# 
-# test_file ${BASE}_pam_nag_12mercounts_allsites.fa
-
 
 INDEX12FASTA_QSUB=`qsub \
 	-cwd \
@@ -459,24 +401,6 @@ echo "PAM + NAG 12mer index FASTA job ID is ${INDEX12FASTA_ID}."
 echo ""
 echo "Making the 12mer index..."
 
-# cd indexes
-# 
-# ../../sh/build_index.sh ../${BASE}_pam_nag_12mercounts_allsites.fa ${BASE}_pam_nag_12mercounts_allsites
-# 
-# FULL_12MER_INDEX=${PWD}/${BASE}_pam_nag_12mercounts_allsites
-# 
-# verify_index ${FULL_12MER_INDEX}.1.ebwt
-# verify_index ${FULL_12MER_INDEX}.2.ebwt
-# verify_index ${FULL_12MER_INDEX}.3.ebwt
-# verify_index ${FULL_12MER_INDEX}.4.ebwt
-# verify_index ${FULL_12MER_INDEX}.rev.1.ebwt
-# verify_index ${FULL_12MER_INDEX}.rev.2.ebwt
-# 
-# cd ..
-# 
-# echo "Deleting the 12mer NGG/NAG FASTA..."
-# rm ${BASE}_pam_nag_12mercounts_allsites.fa
-
 MAKE12INDEX_QSUB=`qsub \
 	-cwd \
 	-V \
@@ -489,7 +413,6 @@ MAKE12INDEX_QSUB=`qsub \
 MAKE12INDEX_ID=`echo $MAKE12INDEX_QSUB | head -1 | cut -d' ' -f3`
 
 echo "PAM + NAG 12mer build-index job ID is ${MAKE12INDEX_ID}."
-
 
 # Output is ${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites.1.ebwt,
 # etc., unless it ends in .ebwtl
@@ -530,23 +453,6 @@ echo "12mer split job ID is ${SPLIT12MER_ID}."
 echo ""
 echo "Counting NGG 12mer offtargets via alignment..."
 
-# ALIGN12MER_QSUB=`qsub \
-# 	-cwd \
-# 	-V \
-# 	-l mem_free=4G \
-# 	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
-# 	-t 1-\`ls split_12mer/ | wc -l\`:1 \
-# 	-tc 16 \
-# 	../sh/find_12mer_offtargets_array.sh \
-# 	${WORKDIR}/processed_12mer \
-# 	${WORKDIR}/split_12mer \
-# 	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
-# 
-# ALIGN12MER_ID=`echo $ALIGN12MER_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
-# 
-# echo "NGG alignment job ID is ${ALIGN12MER_ID}."
-
-
 ALIGN12MER_WRAPPER_QSUB=`qsub \
 	-cwd \
 	-V \
@@ -565,21 +471,6 @@ echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN12MER_WRAPPER_ID}.
 
 
 # Output is ${OUTDIR_PATH}/split_${NUMBER}_12merofftarg.gz
-
-
-
-# PAMFIND_QSUB=`qsub \
-# 	-cwd \
-# 	-V \
-# 	-l mem_free=4G \
-# 	-hold_jid ${PAMSPLIT_ID} \
-# 	-t 1-16:1 \
-# 	-tc 8 \
-# 	../sh/get_all_12mer_seq_array.sh \
-# 	${PWD}/processed_PAMinput \
-# 	${PWD}/split_PAMinput \
-# 	${FULL_INDEX} \
-# 	${GENOME}`
 
 
 
@@ -608,31 +499,10 @@ echo "${TYPE} merge WRAPPER job ID is ${MERGE12MER_WRAPPER_ID}."
 
 # Output is {BASE}_pamlist_12mers_offtargets.gz
 
-# ../sh/find_12mer_offtargets.sh \
-# 	${FULL_12MER_INDEX} \
-# 	${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz \
-# 	${BASE}_pamlist_12mers_offtargets
-# 
-# test_file ${BASE}_pamlist_12mers_offtargets.gz
-# 
-# 
-# 
-# echo "Deleting the FASTA file of all NGG-associated 12mers..."
-# rm ${BASE}_pamlist_12mers_noneg_1each_noN.fa.gz
-
 
 
 echo ""
 echo "Fetching the sequence of all NGG-associated 20mers..."
-
-# cat ${BASE}_pamlist_12mers_noneg.tabseq.gz \
-# 	| ../sh/make_20mer_seq.sh \
-# 	${GENOME} \
-# 	${BASE}_pamlist_20mers_noneg.tabseq
-# 
-# test_file ${BASE}_pamlist_20mers_noneg.tabseq.gz
-# 
-# if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_12mers_noneg.tabseq.gz; fi
 
 PAM20MERSEQ_QSUB=`qsub \
 	-cwd \
@@ -654,15 +524,6 @@ echo "PAM 20mer sequence fetch job ID is ${PAM20MERSEQ_ID}."
 echo ""
 echo "Fetching the sequence of all NAG-associated 20mers..."
 
-# cat ${BASE}_naglist_12mers_noneg.tabseq.gz \
-# 	| ../sh/make_20mer_seq.sh \
-# 	${GENOME} \
-# 	${BASE}_naglist_20mers_noneg.tabseq
-# 
-# test_file ${BASE}_naglist_20mers_noneg.tabseq.gz
-# 
-# if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_12mers_noneg.tabseq.gz; fi
-
 NAG20MERSEQ_QSUB=`qsub \
 	-cwd \
 	-V \
@@ -682,16 +543,6 @@ echo "NAG 20mer sequence fetch job ID is ${NAG20MERSEQ_ID}."
 
 echo ""
 echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
-
-# ../sh/make_index_fasta.sh \
-# 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
-# 	${BASE}_naglist_20mers_noneg.tabseq.gz \
-# 	${BASE}_pam_nag_20mercounts_allsites.fa
-# 
-# test_file ${BASE}_pam_nag_20mercounts_allsites.fa
-# 
-# if [ "$KEEP" = "off" ]; then rm ${BASE}_naglist_20mers_noneg.tabseq.gz; fi
-
 
 INDEX20FASTA_QSUB=`qsub \
 	-cwd \
@@ -726,24 +577,6 @@ qsub \
 echo ""
 echo "Making the 20mer index..."
 
-# cd indexes/
-# 
-# ../../sh/build_index.sh ../${BASE}_pam_nag_20mercounts_allsites.fa ${BASE}_pam_nag_20mercounts_allsites
-# 
-# FULL_20MER_INDEX=${PWD}/${BASE}_pam_nag_20mercounts_allsites
-# 
-# verify_index ${FULL_20MER_INDEX}.1.ebwt
-# verify_index ${FULL_20MER_INDEX}.2.ebwt
-# verify_index ${FULL_20MER_INDEX}.3.ebwt
-# verify_index ${FULL_20MER_INDEX}.4.ebwt
-# verify_index ${FULL_20MER_INDEX}.rev.1.ebwt
-# verify_index ${FULL_20MER_INDEX}.rev.2.ebwt
-# 
-# cd ..
-# 
-# echo "Deleting the 20mer NGG/NAG FASTA..."
-# rm ${BASE}_pam_nag_20mercounts_allsites.fa 
-
 
 
 MAKE20INDEX_QSUB=`qsub \
@@ -761,17 +594,8 @@ echo "PAM + NAG 20mer build-index job ID is ${MAKE20INDEX_ID}."
 
 
 
-
 echo ""
 echo "Removing N-entries from the NGG 20mer tabseq & capitalizing..."
-
-# ../sh/capitalize_rmN_tabseq.sh \
-# 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
-# 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq
-# 
-# test_file ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
-# 
-# if [ "$KEEP" = "off" ]; then rm ${BASE}_pamlist_20mers_noneg.tabseq.gz; fi
 
 PAM20MERCAP_QSUB=`qsub \
 	-cwd \
@@ -794,13 +618,6 @@ echo "PAM capitalization and rm N job ID is ${PAM20MERCAP_ID}."
 echo ""
 echo "Making a FASTA file of all NGG-associated 20mers..."
 
-# ../sh/make_20mer_query_fasta.sh \
-# 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz \
-# 	${BASE}_pamlist_20mers_noneg_1each_noN.fa
-# 
-# 
-# test_file ${BASE}_pamlist_20mers_noneg_1each_noN.fa
-
 PAM20FASTA_QSUB=`qsub \
 	-cwd \
 	-V \
@@ -816,49 +633,9 @@ echo "PAM query FASTA job ID is ${PAM20FASTA_ID}."
 
 # Output is ${BASE}_pamlist_20mers_noneg_1each_noN.fa
 
-###########################
-
-# echo ""
-# echo "Splitting the NGG 20mer FASTA..."
-
-# mkdir split_20mer
-# cd split_20mer
-# 
-# ../../sh/split_20mers.sh ${LINE_COUNT} ../${BASE}_pamlist_20mers_noneg_1each_noN.fa
-# 
-# test_file split_000000000000
-# 
-# cd ..
 
 
-
-
-
-# echo ""
-# echo "Removing the unsplit NGG 20mer FASTA..."
-# rm ${BASE}_pamlist_20mers_noneg_1each_noN.fa
-# 
-# 
-# 
-# # Make a directory in which to put the output of the 20mer alignment
-# mkdir offtarget_20mer_counts
-# 
-# 
-# 
-# # Count the number of split files
-# SPLIT_FILE_COUNT=`ls split_20mer/ | wc -l`
-
-
-
-
-
-
-
-
-
-
-
-
+# Set type
 
 TYPE='20mer'
 
@@ -889,23 +666,6 @@ echo "20mer split job ID is ${SPLIT20MER_ID}."
 echo ""
 echo "Counting NGG 12mer offtargets via alignment..."
 
-# ALIGN12MER_QSUB=`qsub \
-# 	-cwd \
-# 	-V \
-# 	-l mem_free=4G \
-# 	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
-# 	-t 1-\`ls split_12mer/ | wc -l\`:1 \
-# 	-tc 16 \
-# 	../sh/find_12mer_offtargets_array.sh \
-# 	${WORKDIR}/processed_12mer \
-# 	${WORKDIR}/split_12mer \
-# 	${WORKDIR}/indexes/${BASE}_pam_nag_12mercounts_allsites`
-# 
-# ALIGN12MER_ID=`echo $ALIGN12MER_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
-# 
-# echo "NGG alignment job ID is ${ALIGN12MER_ID}."
-
-
 ALIGN20MER_WRAPPER_QSUB=`qsub \
 	-cwd \
 	-V \
@@ -922,8 +682,8 @@ ALIGN20MER_WRAPPER_ID=`echo $ALIGN20MER_WRAPPER_QSUB | head -1 | cut -d' ' -f3`
 
 echo "${TYPE} alignment and counting WRAPPER job ID is ${ALIGN20MER_WRAPPER_ID}."
 
-
 # Output is ${OUTDIR_PATH}/split_${NUMBER}_20merofftarg.gz
+
 
 
 echo ""
@@ -950,48 +710,7 @@ echo "The BED-making end WRAPPER job ID is ${END_ID}."
 
 
 
-
-
-
-
-
-
 echo ""
-echo "Done for the time being."
+echo "Main driver finished."
+
 exit 0
-
-############################################################################
-
-
-
-# echo ""
-# echo "Submitting the array job directly..."
-# 
-# SECOND_QSUB=`qsub -cwd -V -l mem_free=4G -t 1-${SPLIT_FILE_COUNT}:1 -tc 8 ../sh/find_20mer_offtargets.sh ${PWD} ${FULL_20MER_INDEX}`
-# 
-# SECOND_ID=`echo $SECOND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
-# 
-# echo "20mer alignment job ID is ${SECOND_ID}."
-
-
-
-# echo ""
-# echo "Submitting the merge job directly, held until the array job completes..."
-# 
-# THIRD_QSUB=`qsub -cwd -V -hold_jid ${SECOND_ID} ../sh/crispr_track_driver_2.sh ${BASE} ${NAME} ${JOB_ID} ${KEEP}`
-# 
-# THIRD_ID=`echo $THIRD_QSUB | head -1 | cut -d' ' -f3`
-# 
-# echo "The second driver job ID is ${THIRD_ID}."
-
-
-
-echo ""
-echo "Array job complete."
-
-
-
-echo ""
-echo "Driver 1 finished."
-
-exit 0;
