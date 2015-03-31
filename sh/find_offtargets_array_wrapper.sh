@@ -36,7 +36,7 @@ ALIGN_QSUB=`qsub \
 	-V \
 	-l mem_free=4G \
 	-t 1-${SPLIT_COUNT}:1 \
-	-tc 16 \
+	-tc 8 \
 	${SCRIPT} \
 	${OUTDIR_PATH} \
 	${SPLITDIR_PATH} \
