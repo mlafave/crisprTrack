@@ -21,13 +21,11 @@ KEEP=$4 # ${BASE}_pamlist_20mers_noneg.tabseq, etc.
 gunzip -c ${TAGSEQ} \
 	| tr "[:lower:]" "[:upper:]" \
 	| sed 's/CHR/chr/' \
-	| sort -k2,2 \
 	| sed 's/(-)/(~)/' \
 	| awk \
 	-F "[()\t:-]" \
 	-v OFS="\t" \
 	'{ if($4 == "+"){ if($2-8 >= 0){print $1,$2-8,$3,$1"_"$2-8"_"$3"_"$4"_"$6,"0",$4}}else{print $1,$2,$3+8,$1"_"$2"_"$3+8"_-_"$6,"0","-"}}' \
-	| sort -k1,1 -k2,2n \
 	| bedtools getfasta \
 	-s \
 	-name \
