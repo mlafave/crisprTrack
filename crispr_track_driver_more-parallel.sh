@@ -160,8 +160,6 @@ then
 	
 	verify_index ${FULL_INDEX}.1.ebwt*
 	verify_index ${FULL_INDEX}.2.ebwt*
-	verify_index ${FULL_INDEX}.3.ebwt*
-	verify_index ${FULL_INDEX}.4.ebwt*
 	verify_index ${FULL_INDEX}.rev.1.ebwt*
 	verify_index ${FULL_INDEX}.rev.2.ebwt*
 	
@@ -206,8 +204,6 @@ then
 	
 	verify_index ${FULL_INDEX}.1.ebwt*
 	verify_index ${FULL_INDEX}.2.ebwt*
-	verify_index ${FULL_INDEX}.3.ebwt*
-	verify_index ${FULL_INDEX}.4.ebwt*
 	verify_index ${FULL_INDEX}.rev.1.ebwt*
 	verify_index ${FULL_INDEX}.rev.2.ebwt*
 	

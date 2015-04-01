@@ -6,6 +6,6 @@ source ~/.bashrc
 FASTA=$1
 OUTPUT=$2
 
-bowtie-build ${FASTA} ${OUTPUT}
+bowtie-build -f --noref ${FASTA} ${OUTPUT}
 
 exit 0

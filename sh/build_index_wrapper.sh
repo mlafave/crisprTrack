@@ -22,8 +22,6 @@ cd indexes/
 
 find_or_flag ${OUTBASE}.1.ebwt*
 find_or_flag ${OUTBASE}.2.ebwt*
-find_or_flag ${OUTBASE}.3.ebwt*
-find_or_flag ${OUTBASE}.4.ebwt*
 find_or_flag ${OUTBASE}.rev.1.ebwt*
 find_or_flag ${OUTBASE}.rev.2.ebwt*
 
