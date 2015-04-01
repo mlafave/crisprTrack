@@ -31,7 +31,7 @@ NUMBER=`printf "%012d\n" $(( SGE_TASK_ID - 1 ))`
 cd ${OUTDIR_PATH}
 
 
-bowtie -t -f -v 2 -a -y --best --norc --sam --sam-nohead \
+bowtie -t -f -v 2 -m 1 -a -y --best --norc --sam --sam-nohead \
 	${INDEX} \
 	${SPLITDIR_PATH}/split_${NUMBER} \
 	| awk -F"[_\t]" -v OFS="\t" '{ a[$12] += $5 }END{ for(var in a){print var"\t"a[var]-1}}' \
