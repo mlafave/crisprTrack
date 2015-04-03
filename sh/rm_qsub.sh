@@ -19,7 +19,7 @@ FILE=$1
 
 # Delete the file
 
-echo "Deleting ${FILE...}"
+echo "Deleting ${FILE}..."
 rm ${FILE}
 echo "Done."
 
