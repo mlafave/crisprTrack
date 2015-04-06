@@ -39,9 +39,5 @@ gzip ${OUTPUT}
 find_or_flag ${OUTPUT}.gz
 
 
-# Remove the input unless told not to
-
-if [ "$KEEP" = "off" ]; then rm ${TAGSEQ}; fi
-
 
 exit 0

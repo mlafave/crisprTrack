@@ -221,7 +221,6 @@ echo "Splitting the NGG input..."
 PAMSPLIT_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	../sh/split_wrapper.sh \
 	PAMinput \
 	2 \
@@ -240,7 +239,7 @@ echo "Identifying all NGG sites & fetching 12mer sequence..."
 PAMFIND_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=8G \
 	-hold_jid ${PAMSPLIT_ID} \
 	-t 1-16:1 \
 	-tc 8 \
@@ -264,7 +263,7 @@ echo "Merging the NGG files..."
 PAMMERGE_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=256M \
 	-hold_jid ${PAMFIND_ID} \
 	../sh/merge.sh \
 	${PWD}/processed_PAMinput \
@@ -286,7 +285,6 @@ echo "Splitting the NAG input..."
 NAGSPLIT_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	../sh/split_wrapper.sh \
 	NAGinput \
 	2 \
@@ -305,7 +303,7 @@ echo "Identifying all NAG sites & fetching 12mer sequence..."
 NAGFIND_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=8G \
 	-hold_jid ${NAGSPLIT_ID} \
 	-t 1-16:1 \
 	-tc 8 \
@@ -329,7 +327,7 @@ echo "Merging the NAG files..."
 NAGMERGE_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=256M \
 	-hold_jid ${NAGFIND_ID} \
 	../sh/merge.sh \
 	${PWD}/processed_NAGinput \
@@ -354,7 +352,7 @@ echo "Making a FASTA file of all NGG-associated 12mers..."
 PAM12FASTA_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=1G \
 	-hold_jid ${PAMMERGE_ID} \
 	../sh/make_12mer_query_fasta_qsub.sh \
 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
@@ -377,7 +375,7 @@ echo "Making a FASTA file of all NGG- and NAG-associated 12mers..."
 INDEX12FASTA_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=1G \
 	-hold_jid ${PAMMERGE_ID},${NAGMERGE_ID} \
 	../sh/make_index_fasta_qsub.sh \
 	${BASE}_pamlist_12mers_noneg.tabseq.gz \
@@ -431,7 +429,7 @@ echo "Splitting the NGG 12mer FASTA input..."
 SPLIT12MER_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=256M \
 	-hold_jid ${PAM12FASTA_ID} \
 	../sh/split_wrapper.sh \
 	${TYPE} \
@@ -452,7 +450,6 @@ echo "Counting NGG 12mer offtargets via alignment..."
 ALIGN12MER_WRAPPER_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	-hold_jid ${SPLIT12MER_ID},${MAKE12INDEX_ID} \
 	../sh/find_offtargets_array_wrapper.sh \
 	${PARENT}/sh/find_12mer_offtargets_array.sh \
@@ -479,7 +476,6 @@ echo "Counting NGG 12mer offtargets..."
 MERGE12MER_WRAPPER_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	-hold_jid ${ALIGN12MER_WRAPPER_ID} \
 	../sh/merge_wrapper.sh \
 	${TYPE} \
@@ -516,6 +512,19 @@ PAM20MERSEQ_ID=`echo $PAM20MERSEQ_QSUB | head -1 | cut -d' ' -f3`
 echo "PAM 20mer sequence fetch job ID is ${PAM20MERSEQ_ID}."
 
 
+if [ "$KEEP" = "off" ]
+then
+	echo ""
+	echo "Removing the 12mer NGG tabseq file..."
+
+	qsub \
+		-cwd \
+		-V \
+		-hold_jid ${INDEX12FASTA_ID},${PAM20MERSEQ_ID} \
+		../sh/rm_qsub.sh \
+		${BASE}_pamlist_12mers_noneg.tabseq.gz
+fi
+
 
 echo ""
 echo "Fetching the sequence of all NAG-associated 20mers..."
@@ -537,13 +546,28 @@ echo "NAG 20mer sequence fetch job ID is ${NAG20MERSEQ_ID}."
 
 
 
+if [ "$KEEP" = "off" ]
+then
+	echo ""
+	echo "Removing the 12mer NAG tabseq file..."
+
+	qsub \
+		-cwd \
+		-V \
+		-hold_jid ${INDEX12FASTA_ID},${NAG20MERSEQ_ID} \
+		../sh/rm_qsub.sh \
+		${BASE}_naglist_12mers_noneg.tabseq.gz
+fi
+
+
+
 echo ""
 echo "Making a FASTA file of all NGG- and NAG-associated 20mers..."
 
 INDEX20FASTA_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=1G \
 	-hold_jid ${PAM20MERSEQ_ID},${NAG20MERSEQ_ID} \
 	../sh/make_index_fasta_qsub.sh \
 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
@@ -562,7 +586,6 @@ echo "Removing the 20mer NAG tabseq file..."
 qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	-hold_jid ${INDEX20FASTA_ID} \
 	../sh/rm_qsub.sh \
 	${BASE}_naglist_20mers_noneg.tabseq.gz
@@ -578,7 +601,7 @@ echo "Making the 20mer index..."
 MAKE20INDEX_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=8G \
 	-hold_jid ${INDEX20FASTA_ID} \
 	../sh/build_index_wrapper.sh \
 	${WORKDIR}/${BASE}_pam_nag_20mercounts_allsites.fa \
@@ -596,7 +619,7 @@ echo "Removing N-entries from the NGG 20mer tabseq & capitalizing..."
 PAM20MERCAP_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=1G \
 	-hold_jid ${PAM20MERSEQ_ID} \
 	../sh/capitalize_rmN_tabseq_qsub.sh \
 	${BASE}_pamlist_20mers_noneg.tabseq.gz \
@@ -617,7 +640,7 @@ echo "Making a FASTA file of all NGG-associated 20mers..."
 PAM20FASTA_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=1G \
 	-hold_jid ${PAM20MERCAP_ID} \
 	../sh/make_20mer_query_fasta_qsub.sh \
 	${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz \
@@ -643,7 +666,7 @@ echo "Splitting the NGG 20mer FASTA input..."
 SPLIT20MER_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=256M \
 	-hold_jid ${PAM20FASTA_ID} \
 	../sh/split_wrapper.sh \
 	${TYPE} \
@@ -665,7 +688,6 @@ echo "Counting NGG 12mer offtargets via alignment..."
 ALIGN20MER_WRAPPER_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	-hold_jid ${SPLIT20MER_ID},${MAKE20INDEX_ID} \
 	../sh/find_offtargets_array_wrapper.sh \
 	${PARENT}/sh/find_20mer_offtargets_array.sh \
@@ -688,7 +710,6 @@ echo "Combining 12 and 20mer offtarget info into one BED file..."
 END_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
 	-hold_jid ${MERGE12MER_WRAPPER_ID},${ALIGN20MER_WRAPPER_ID} \
 	../sh/crispr_track_end_driver_wrapper.sh \
 	merge_12mer_ID \
