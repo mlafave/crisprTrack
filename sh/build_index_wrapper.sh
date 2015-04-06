@@ -17,15 +17,17 @@ cd indexes/
 
 ../../sh/build_index.sh ${INDEX_FASTA} ${OUTBASE}
 
+cd ..
+
 # Verify that the index files were created. The asterisk is there in case these
 # are .ebwtl files.
 
-find_or_flag ${OUTBASE}.1.ebwt*
-find_or_flag ${OUTBASE}.2.ebwt*
-find_or_flag ${OUTBASE}.rev.1.ebwt*
-find_or_flag ${OUTBASE}.rev.2.ebwt*
+find_or_flag indexes/${OUTBASE}.1.ebwt*
+find_or_flag indexes/${OUTBASE}.2.ebwt*
+find_or_flag indexes/${OUTBASE}.rev.1.ebwt*
+find_or_flag indexes/${OUTBASE}.rev.2.ebwt*
 
-cd ..
+
 
 # Remove the input FASTA.
 rm ${INDEX_FASTA}
