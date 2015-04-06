@@ -3,7 +3,7 @@
 function throw_flag_error
 {
 	echo >&2 ERROR: $1
-	touch kill_flag
+	echo "${JOB_NAME}    ${JOB_ID}" >> kill_flag
 	exit 1
 }
 
