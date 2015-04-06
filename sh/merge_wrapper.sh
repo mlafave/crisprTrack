@@ -37,7 +37,7 @@ echo "Submitting the ${TYPE} merge job..."
 MERGE_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=256M \
 	-hold_jid ${ALIGN_ID} \
 	../sh/merge.sh \
 	${PROCESSEDDIR_PATH} \

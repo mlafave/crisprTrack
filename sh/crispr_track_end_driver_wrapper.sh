@@ -43,7 +43,7 @@ echo "Submitting the end driver job..."
 END_DRIVER_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=4G \
+	-l mem_free=1G \
 	-hold_jid ${MERGE_12MER_ID},${ALIGN_20MER_ID} \
 	../sh/crispr_track_end_driver.sh \
 	${PROCESSEDDIR_PATH} \
