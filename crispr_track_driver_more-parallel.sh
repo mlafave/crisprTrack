@@ -520,7 +520,7 @@ then
 	qsub \
 		-cwd \
 		-V \
-		-hold_jid ${INDEX12FASTA_ID},${PAM20MERSEQ_ID} \
+		-hold_jid ${PAM12FASTA_ID},${INDEX12FASTA_ID},${PAM20MERSEQ_ID} \
 		../sh/rm_qsub.sh \
 		${BASE}_pamlist_12mers_noneg.tabseq.gz
 fi
@@ -631,6 +631,21 @@ PAM20MERCAP_ID=`echo $PAM20MERCAP_QSUB | head -1 | cut -d' ' -f3`
 echo "PAM capitalization and rm N job ID is ${PAM20MERCAP_ID}."
 
 # Output is ${BASE}_pamlist_20mers_noneg_upper_sort.tabseq.gz
+
+
+
+if [ "$KEEP" = "off" ]
+then
+	echo ""
+	echo "Removing the 20mer NGG tabseq file..."
+
+	qsub \
+		-cwd \
+		-V \
+		-hold_jid ${INDEX20FASTA_ID},${PAM20MERCAP_ID} \
+		../sh/rm_qsub.sh \
+		${BASE}_pamlist_20mers_noneg.tabseq.gz
+fi
 
 
 

@@ -24,7 +24,6 @@ gunzip -c  ${PAMTAGSEQ} \
 
 find_or_flag ${OUTPUT}.gz
 
-if [ "$KEEP" = "off" ]; then rm ${PAMTAGSEQ}; fi
 
 
 exit 0
