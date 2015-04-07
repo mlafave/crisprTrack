@@ -31,7 +31,18 @@ NUMBER=`printf "%012d\n" $(( SGE_TASK_ID - 1 ))`
 cd ${OUTDIR_PATH}
 
 
-bowtie -t -f -v 2 -m 1 -a -y --best --norc --sam --sam-nohead \
+# As of bowtie 1.1.1, if the index ends in an l, you need to explicitly tell
+# the aligner that it's a large index.
+
+if [[ ${INDEX} =~ l$ ]]
+then
+	BOWTIE_COMMAND='bowtie -t -f -v 2 -m 1 -a -y --best --norc --sam --sam-nohead --large-index'
+else
+	BOWTIE_COMMAND='bowtie -t -f -v 2 -m 1 -a -y --best --norc --sam --sam-nohead'
+fi
+
+
+${BOWTIE_COMMAND} \
 	${INDEX} \
 	${SPLITDIR_PATH}/split_${NUMBER} \
 	| awk -F"[_\t]" -v OFS="\t" '{ a[$12] += $5 }END{ for(var in a){print var"\t"a[var]-1}}' \
