@@ -34,7 +34,9 @@ cd ${OUTDIR_PATH}
 # As of bowtie 1.1.1, if the index ends in an l, you need to explicitly tell
 # the aligner that it's a large index.
 
-if [[ ${INDEX} =~ l$ ]]
+INDEX_SUBSET=`ls ${INDEX}* | head -1`
+
+if [[ ${INDEX_SUBSET} =~ l$ ]]
 then
 	BOWTIE_COMMAND='bowtie -t -f -v 2 -m 1 -a -y --best --norc --sam --sam-nohead --large-index'
 else
