@@ -34,7 +34,7 @@ SPLIT_COUNT=`ls ${SPLITDIR_PATH} | wc -l`
 ALIGN_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=8G \
+	-l mem_free=109G \
 	-t 1-${SPLIT_COUNT}:1 \
 	-tc 8 \
 	${SCRIPT} \

@@ -601,7 +601,7 @@ echo "Making the 20mer index..."
 MAKE20INDEX_QSUB=`qsub \
 	-cwd \
 	-V \
-	-l mem_free=8G \
+	-l mem_free=75G \
 	-hold_jid ${INDEX20FASTA_ID} \
 	../sh/build_index_wrapper.sh \
 	${WORKDIR}/${BASE}_pam_nag_20mercounts_allsites.fa \
