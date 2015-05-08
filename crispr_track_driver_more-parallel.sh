@@ -58,13 +58,15 @@ function full_path ()
 print_usage()
 {
   cat <<EOF
-Usage: ./crispr_track_driver.sh [options] input_genome.fa
+Usage: ./crispr_track_driver.sh [options] -p <pamlist.fa> input_genome.fa
 	Options:
 	-h	print this help message and exit
 	-i	path to the index basename, if available
 	-k	keep intermediate files that are deleted by default
 	-l	an even number of lines to use per file when aligning 20mers
 	-n	name
+	-o	path to a FASTA file of off-target PAM sites
+	-p	path to a FASTA file of on-target PAM sites (required)
 	-v	print version and quit
 EOF
 }
@@ -78,12 +80,15 @@ print_version()
 EOF
 }
 
+# Define the path to the directory that 
+
+PARENT=${PWD}
 
 NAME="crisprs"
 LINE_COUNT=5000000
 KEEP=off
 
-while getopts "hi:kl:n:v" OPTION
+while getopts "hi:kl:n:o:p:v" OPTION
 do
 	case $OPTION in
     	h)
@@ -101,6 +106,12 @@ do
     		;;
     	n)
     		NAME=$OPTARG
+    		;;
+    	o)
+    		OFFPAM=`full_path $OPTARG`
+    		;;
+    	p)
+    		ONPAM=`full_path $OPTARG`
     		;;
     	v)
     		print_version
@@ -120,7 +131,7 @@ then
 	throw_error "-l must be greater than 0"
 fi 
 
-
+test_file ${ONPAM}
 
 GENOME_INPUT=$1
 
@@ -174,8 +185,6 @@ echo $NAME | grep -q [[:blank:]] && throw_error "'NAME' can't have blanks"
 
 # Make a working directory
 
-PARENT=${PWD}
-
 WORKDIR=$PWD/Workdir_${NAME}_$JOB_ID
 
 if [ -d $WORKDIR ] ; then throw_error "$WORKDIR already exists!"; fi
@@ -224,7 +233,7 @@ PAMSPLIT_QSUB=`qsub \
 	../sh/split_wrapper.sh \
 	PAMinput \
 	2 \
-	${PARENT}/input/pamlist.fa \
+	${ONPAM} \
 	on`
 
 PAMSPLIT_ID=`echo $PAMSPLIT_QSUB | head -1 | cut -d' ' -f3`
@@ -277,69 +286,89 @@ echo "PAM merge job ID is ${PAMMERGE_ID}."
 
 
 
-# Identify all NAG sites in the genome
+# If a set of "offtarget PAMs" was specified, identify those, too. The idea is
+# that these are sites at which cutting is possible, but sub-optimal.
+# Therefore, one would want to take them into account when counting potential
+# off-targets, but would not want them reported as good CRISPR candidates. For
+# Cas9, the canonical PAM is NGG, and a lower degree of cutting occurs at NAG
+# PAMs; as such "nag" appears in the variables and filenames referring to
+# off-target PAM sites.
 
-echo ""
-echo "Splitting the NAG input..."
+if [ ${OFFPAM} ]
+then
 
-NAGSPLIT_QSUB=`qsub \
-	-cwd \
-	-V \
-	../sh/split_wrapper.sh \
-	NAGinput \
-	2 \
-	${PARENT}/input/naglist.fa \
-	on`
+	# Identify all NAG sites in the genome
 
-NAGSPLIT_ID=`echo $NAGSPLIT_QSUB | head -1 | cut -d' ' -f3`
+	echo ""
+	echo "Splitting the NAG input..."
 
-echo "NAG split job ID is ${NAGSPLIT_ID}."
+	NAGSPLIT_QSUB=`qsub \
+		-cwd \
+		-V \
+		../sh/split_wrapper.sh \
+		NAGinput \
+		2 \
+		${OFFPAM} \
+		on`
 
+	NAGSPLIT_ID=`echo $NAGSPLIT_QSUB | head -1 | cut -d' ' -f3`
 
-
-echo ""
-echo "Identifying all NAG sites & fetching 12mer sequence..."
-
-NAGFIND_QSUB=`qsub \
-	-cwd \
-	-V \
-	-l mem_free=8G \
-	-hold_jid ${NAGSPLIT_ID} \
-	-t 1-16:1 \
-	-tc 8 \
-	../sh/get_all_12mer_seq_array.sh \
-	${PWD}/processed_NAGinput \
-	${PWD}/split_NAGinput \
-	${FULL_INDEX} \
-	${GENOME}`
-
-NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
-
-echo "NAG alignment job ID is ${NAGFIND_ID}."
+	echo "NAG split job ID is ${NAGSPLIT_ID}."
 
 
 
-# Merge the split files back together
+	echo ""
+	echo "Identifying all NAG sites & fetching 12mer sequence..."
 
-echo ""
-echo "Merging the NAG files..."
+	NAGFIND_QSUB=`qsub \
+		-cwd \
+		-V \
+		-l mem_free=8G \
+		-hold_jid ${NAGSPLIT_ID} \
+		-t 1-16:1 \
+		-tc 8 \
+		../sh/get_all_12mer_seq_array.sh \
+		${PWD}/processed_NAGinput \
+		${PWD}/split_NAGinput \
+		${FULL_INDEX} \
+		${GENOME}`
 
-NAGMERGE_QSUB=`qsub \
-	-cwd \
-	-V \
-	-l mem_free=256M \
-	-hold_jid ${NAGFIND_ID} \
-	../sh/merge.sh \
-	${PWD}/processed_NAGinput \
-	${PWD}/split_NAGinput \
-	${BASE}_naglist_12mers_noneg.tabseq \
-	${KEEP}`
+	NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 
-NAGMERGE_ID=`echo $NAGMERGE_QSUB | head -1 | cut -d' ' -f3`
-
-echo "NAG merge job ID is ${NAGMERGE_ID}."
+	echo "NAG alignment job ID is ${NAGFIND_ID}."
 
 
+
+	# Merge the split files back together
+
+	echo ""
+	echo "Merging the NAG files..."
+
+	NAGMERGE_QSUB=`qsub \
+		-cwd \
+		-V \
+		-l mem_free=256M \
+		-hold_jid ${NAGFIND_ID} \
+		../sh/merge.sh \
+		${PWD}/processed_NAGinput \
+		${PWD}/split_NAGinput \
+		${BASE}_naglist_12mers_noneg.tabseq \
+		${KEEP}`
+
+	NAGMERGE_ID=`echo $NAGMERGE_QSUB | head -1 | cut -d' ' -f3`
+
+	echo "NAG merge job ID is ${NAGMERGE_ID}."
+
+else
+	
+	# If there are no off-target PAMs defined, create an empty "dummy file" to
+	# pass to subsequent commands.
+	
+	touch ${BASE}_naglist_12mers_noneg.tabseq
+	
+	gzip ${BASE}_naglist_12mers_noneg.tabseq
+	
+fi
 
 # Make an NGG FASTA file that represents each sequence only once, and that does
 # not contain any sequences with ambiguous bases. This file will be used as the
@@ -442,6 +471,7 @@ SPLIT12MER_ID=`echo $SPLIT12MER_QSUB | head -1 | cut -d' ' -f3`
 echo "12mer split job ID is ${SPLIT12MER_ID}."
 
 
+
 # Align
 
 echo ""
@@ -526,23 +556,35 @@ then
 fi
 
 
+
 echo ""
 echo "Fetching the sequence of all NAG-associated 20mers..."
 
-NAG20MERSEQ_QSUB=`qsub \
-	-cwd \
-	-V \
-	-l mem_free=4G \
-	-hold_jid ${NAGMERGE_ID} \
-	../sh/make_20mer_seq_qsub.sh \
-	${BASE}_naglist_12mers_noneg.tabseq.gz \
-	${GENOME} \
-	${BASE}_naglist_20mers_noneg.tabseq \
-	${KEEP}`
+# If -o is not specified, ${NAGMERGE_ID} won't exist. Normally that's not a
+# problem, because -hold_jid is usually waiting on PAM AND NAG files, but this
+# one is ONLY NAG. As a result, you have to skip this submission if you don't
+# have -o. The lack of ${NAG20MERSEQ_ID} won't be a problem, as it never
+# appears alone.
 
-NAG20MERSEQ_ID=`echo $NAG20MERSEQ_QSUB | head -1 | cut -d' ' -f3`
+if [ ${OFFPAM} ]
+then
 
-echo "NAG 20mer sequence fetch job ID is ${NAG20MERSEQ_ID}."
+	NAG20MERSEQ_QSUB=`qsub \
+		-cwd \
+		-V \
+		-l mem_free=4G \
+		-hold_jid ${NAGMERGE_ID} \
+		../sh/make_20mer_seq_qsub.sh \
+		${BASE}_naglist_12mers_noneg.tabseq.gz \
+		${GENOME} \
+		${BASE}_naglist_20mers_noneg.tabseq \
+		${KEEP}`
+
+	NAG20MERSEQ_ID=`echo $NAG20MERSEQ_QSUB | head -1 | cut -d' ' -f3`
+
+	echo "NAG 20mer sequence fetch job ID is ${NAG20MERSEQ_ID}."
+
+fi
 
 
 
