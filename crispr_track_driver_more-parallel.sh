@@ -58,7 +58,7 @@ function full_path ()
 print_usage()
 {
   cat <<EOF
-Usage: ./crispr_track_driver.sh [options] -p <pamlist.fa> input_genome.fa
+Usage: ./crispr_track_driver.sh [options] -p <pamlist.fa> -s <length> input_genome.fa
 	Options:
 	-h	print this help message and exit
 	-i	path to the index basename, if available
@@ -67,6 +67,7 @@ Usage: ./crispr_track_driver.sh [options] -p <pamlist.fa> input_genome.fa
 	-n	name
 	-o	path to a FASTA file of off-target PAM sites
 	-p	path to a FASTA file of on-target PAM sites (required)
+	-s	length of the PAM substring or string (required)
 	-v	print version and quit
 EOF
 }
@@ -88,7 +89,7 @@ NAME="crisprs"
 LINE_COUNT=5000000
 KEEP=off
 
-while getopts "hi:kl:n:o:p:v" OPTION
+while getopts "hi:kl:n:o:p:s:v" OPTION
 do
 	case $OPTION in
     	h)
@@ -113,6 +114,9 @@ do
     	p)
     		ONPAM=`full_path $OPTARG`
     		;;
+    	s)
+    		PAM_LENGTH=$OPTARG
+    		;;
     	v)
     		print_version
     		exit 0
@@ -132,6 +136,11 @@ then
 fi 
 
 test_file ${ONPAM}
+
+if [ ! $PAM_LENGTH ]
+then 
+	throw_error "The length of the PAM must be specified by -s"
+fi
 
 GENOME_INPUT=$1
 
@@ -220,9 +229,20 @@ fi
 
 
 
+# Count the number of PAM entries to be checked (and, if applicable, the number
+# of off-target PAM entries). This assumes that, during the first FASTA splits,
+# each post-split file contains a single entry.
+
+PAM_COUNT=`cat ${ONPAM} | wc -l | awk '{print $1/2}'`
+
+if [ ${OFFPAM} ]
+then
+	NAG_COUNT=`cat ${OFFPAM} | wc -l | awk '{print $1/2}'`
+fi
+
+
+
 # Prepare to identify all NGG sites in the genome in parallel
-
-
 
 echo ""
 echo "Splitting the NGG input..."
@@ -250,13 +270,14 @@ PAMFIND_QSUB=`qsub \
 	-V \
 	-l mem_free=8G \
 	-hold_jid ${PAMSPLIT_ID} \
-	-t 1-16:1 \
+	-t 1-${PAM_COUNT}:1 \
 	-tc 8 \
 	../sh/get_all_12mer_seq_array.sh \
 	${PWD}/processed_PAMinput \
 	${PWD}/split_PAMinput \
 	${FULL_INDEX} \
-	${GENOME}`
+	${GENOME} \
+	${PAM_LENGTH}`
 
 PAMFIND_ID=`echo $PAMFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 
@@ -325,13 +346,14 @@ then
 		-V \
 		-l mem_free=8G \
 		-hold_jid ${NAGSPLIT_ID} \
-		-t 1-16:1 \
+		-t 1-${NAG_COUNT}:1 \
 		-tc 8 \
 		../sh/get_all_12mer_seq_array.sh \
 		${PWD}/processed_NAGinput \
 		${PWD}/split_NAGinput \
 		${FULL_INDEX} \
-		${GENOME}`
+		${GENOME}\
+		${PAM_LENGTH}`
 
 	NAGFIND_ID=`echo $NAGFIND_QSUB | head -1 | cut -d' ' -f3 | cut -d. -f1`
 
