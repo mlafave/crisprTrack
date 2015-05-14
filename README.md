@@ -237,3 +237,11 @@ uncompressed BED file is "crispr000000" in the example file; in your file, the
 six zeros should be replaced with the `$JOB_ID` assigned to crisprTrack upon
 using qsub.
 
+
+Citation
+--------
+
+If you use crisprTrack or one of the tracks it produced in your work, please use the following DOI to cite it:
+
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.17607.svg)](http://dx.doi.org/10.5281/zenodo.17607)
+
